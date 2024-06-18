@@ -1,1 +1,2 @@
-        snakeBody.insert(0,snakeHead)
+
+    while time.time() < t_end:
