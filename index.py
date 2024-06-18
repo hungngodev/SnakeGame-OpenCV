@@ -55,6 +55,32 @@ apple =randomPoint()
 score = 0
 prevDir = 1
 
+def draw(img):
+    cv2.imshow('a',img)
+ 
+    img = np.zeros((width *square, length*square,3), dtype='uint8')
+    cv2.rectangle(img,(apple[0],apple[1]),(apple[0]+square,apple[1]+square),(0,0,255),-1)
+    
+    cv2.rectangle(img, (snakeHead[0], snakeHead[1]), (snakeHead[0]+square, snakeHead[1]+square), snakeColor, -1)
+
+    match curDir:
+        case 0:
+            cv2.circle(img, (snakeHead[0], snakeHead[1]), 5, eyeColor, -1)
+            cv2.circle(img, (snakeHead[0], snakeHead[1]+square), 5,eyeColor, -1)
+        case 1:
+            cv2.circle(img, (snakeHead[0]+square, snakeHead[1]), 5, eyeColor, -1)
+            cv2.circle(img, (snakeHead[0]+square, snakeHead[1]+square), 5,eyeColor, -1)
+        case 2: 
+            cv2.circle(img, (snakeHead[0], snakeHead[1]+square), 5, eyeColor, -1)
+            cv2.circle(img, (snakeHead[0]+ square, snakeHead[1]+square), 5,eyeColor, -1)
+        case 3:
+            cv2.circle(img, (snakeHead[0], snakeHead[1]), 5, eyeColor, -1)
+            cv2.circle(img, (snakeHead[0]+ square, snakeHead[1]), 5,eyeColor, -1)
+    
+    for i in range(len(snakeBody)):
+        cv2.rectangle(img,(snakeBody[i][0],snakeBody[i][1]),(snakeBody[i][0]+square,snakeBody[i][1]+square),(0,255,0),-1)
+    return img
+
 while True:
     cv2.imshow('a',img)
  
@@ -84,7 +110,7 @@ while True:
     k = -1
     while time.time() < t_end:
         if k == -1:
-            k = cv2.waitKey(round(1))
+            k = cv2.waitKey(round(10))
         else:
             continue
             
@@ -102,32 +128,36 @@ while True:
     else:
         curDir = curDir
         
-    snakeBody.insert(0,list(snakeHead))
-    if (prevDir != curDir):
-        if prevDir ==1:
-            while(snakeHead[0] % square != 0):
-                snakeHead[0] += 1
-
-        elif prevDir == 0:
-            while(snakeHead[0] % square != 0):
-                snakeHead[0] -= 1
-        elif prevDir == 2:
-            while(snakeHead[1] % square != 0):
-                snakeHead[1] += 1
-        elif prevDir == 3:
-            while(snakeHead[1] % square != 0):
-                snakeHead[1] -= 1
-                
     prevDir = curDir
     if curDir == 1:
-        snakeHead[0] += 1
+        for i in range(square-1):
+            snakeHead[0] += 1
+            snakeBody.insert(0,list(snakeHead))
+            img = draw(img)
+            cv2.waitKey(10)
+            snakeBody.pop()
     elif curDir == 0:
-        snakeHead[0] -= 1
+        for i in range(square-1):
+            snakeHead[0] -= 1
+            snakeBody.insert(0,list(snakeHead))
+            img= draw(img)
+            cv2.waitKey(10)
+            snakeBody.pop()
     elif curDir == 2:
-        snakeHead[1] += 1
+        for i in range(square-1):
+            snakeHead[1] += 1
+            snakeBody.insert(0,list(snakeHead))
+            img= draw(img)
+            cv2.waitKey(10)
+            snakeBody.pop()
     elif curDir == 3:
-        snakeHead[1] -= 1
-        
+        for i in range(square-1):
+            snakeHead[1] -= 1
+            snakeBody.insert(0,list(snakeHead))
+            img =draw(img)
+            cv2.waitKey(10)
+            snakeBody.pop()
+    print('done')
     
     if snakeHead == apple:
         apple, score = eatApple(apple, score)
