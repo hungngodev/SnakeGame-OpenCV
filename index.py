@@ -1,7 +1,9 @@
-import numpy as np
-import cv2
 import random
 import time
+
+import cv2
+import numpy as np
+
 
 def randomPoint():
     return [np.random.randint(1, width-1) * square, np.random.randint(1, length-1) * square]
@@ -28,29 +30,6 @@ delay = 0.00005
 eyeColor  = (255,0,255)
 snakeColor = (255,0,0)
 img = np.zeros((width *square, length*square,3),dtype='uint8')
-
-
-snakeHead = randomPoint()
-curDir = np.random.randint(0,4)
-snakeBody =[]
-match curDir:
-    case 0:
-        snakeBody = [
-         [snakeHead[0] + (i+1+square)  , snakeHead[1]] for i in range(square)
-            ]
-    case 1:
-        snakeBody = [
-            [snakeHead[0] - (i+1+square), snakeHead[1]] for i in range(square)
-            ]
-    case 2:
-        snakeBody = [
-            [snakeHead[0], snakeHead[1] - (i+1+square)] for i in range(square)
-            ]
-    case 3:
-        snakeBody = [
-            [snakeHead[0], snakeHead[1] + (i+1+square)] for i in range(square)
-        ]
-
 apple =randomPoint()
 score = 0
 prevDir = 1
@@ -58,6 +37,28 @@ key = 1
 save = False
 pointChange = False
 font = cv2.FONT_HERSHEY_SIMPLEX
+speed = 5
+snakeHead = randomPoint()
+curDir = np.random.randint(0,4)
+snakeBody =[]
+match curDir:
+    case 0:
+        snakeBody = [
+         [snakeHead[0] + (i+1+square)  , snakeHead[1]] for i in range(square//speed)
+            ]
+    case 1:
+        snakeBody = [
+            [snakeHead[0] - (i+1+square), snakeHead[1]] for i in range(square//speed)
+            ]
+    case 2:
+        snakeBody = [
+            [snakeHead[0], snakeHead[1] - (i+1+square)] for i in range(square//speed)
+            ]
+    case 3:
+        snakeBody = [
+            [snakeHead[0], snakeHead[1] + (i+1+square)] for i in range(square//speed)
+        ]
+
 
 while True:
     cv2.imshow('a',img)
@@ -88,9 +89,9 @@ while True:
     k = -1
     while time.time() < t_end:
         if k == -1:
-            k = cv2.waitKey(round(1))
+                k = cv2.waitKey(round(1))
         else:
-            continue
+                continue
     if save:
         k = key
         save = False
@@ -117,17 +118,17 @@ while True:
     prevDir = curDir
     
     if curDir == 1:
-        snakeHead[0] += 1
+        snakeHead[0] += speed
     elif curDir == 0:
-        snakeHead[0] -= 1
+        snakeHead[0] -= speed
     elif curDir == 2:
-        snakeHead[1] += 1
+        snakeHead[1] += speed
     elif curDir == 3:
-        snakeHead[1] -= 1
+        snakeHead[1] -= speed
     
     if snakeHead == apple:
         apple, score = eatApple(apple, score)
-        for i in range(square):
+        for i in range(square// speed):
             snakeBody.append(list(snakeBody[-1]))
         pointChange = True
         showSpeedTime= time.time()
