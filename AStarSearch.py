@@ -1,5 +1,6 @@
 import math
 import heapq
+from copy import deepcopy
 
 class Cell:
 	def __init__(self):
@@ -9,12 +10,16 @@ class Cell:
 		self.g = float('inf')
 		self.h = 0
 		self.dir = 0 
+		self.unBlocked = []
 
 def is_valid(row, col, ROW, COL):
 	return (row >= 0) and (row < ROW) and (col >= 0) and (col < COL)
 
-def is_unblocked(grid, row, col):
-	return grid[row][col]
+def is_unblocked(grid, row, col, unBlockedArr):
+	for unBlockedCell in unBlockedArr:
+		if unBlockedCell[0] == row and unBlockedCell[1] == col:
+			return 1
+	return grid[row][col] == 1
 
 def is_destination(row, col, dest):
 	return row == dest[0] and col == dest[1]
@@ -37,12 +42,8 @@ def a_star_search(grid, src, dest, prevDir, snakeBody, square, COL, ROW, speed):
 		print("Destination is invalid")
 		return
  
-	if not is_unblocked(grid, src[0], src[1]):
-		print("Source is blocked")
-		return
-
-	if not is_unblocked(grid, dest[0], dest[1]):
-		print("Destination is blocked")
+	if not grid[src[0]][src[1]] or not grid[dest[0]][dest[1]]:
+		print("Source or the destination is blocked")
 		return
 
 	if is_destination(src[0], src[1], dest):
@@ -66,7 +67,6 @@ def a_star_search(grid, src, dest, prevDir, snakeBody, square, COL, ROW, speed):
 	found_dest = False
 	while len(open_list) > 0:
 		p = heapq.heappop(open_list)
-
 		i = p[1]
 		j = p[2]
 		closed_list[i][j] = True
@@ -85,8 +85,7 @@ def a_star_search(grid, src, dest, prevDir, snakeBody, square, COL, ROW, speed):
 		for dir in directions:
 			new_i = i + coordinates[dir][0]
 			new_j = j + coordinates[dir][1]
-
-			if is_valid(new_i, new_j, ROW, COL) and is_unblocked(grid, new_i, new_j) and not closed_list[new_i][new_j]:
+			if is_valid(new_i, new_j, ROW, COL) and is_unblocked(grid, new_i, new_j, cell_details[i][j].unBlocked) and not closed_list[new_i][new_j]:
 				if is_destination(new_i, new_j, dest):
 					cell_details[new_i][new_j].parent_i = i
 					cell_details[new_i][new_j].parent_j = j
@@ -99,15 +98,26 @@ def a_star_search(grid, src, dest, prevDir, snakeBody, square, COL, ROW, speed):
 					g_new = cell_details[i][j].g + 1.0
 					h_new = calculate_h_value(new_i, new_j, dest)
 					f_new = g_new + h_new
+					try: 
+						if cell_details[new_i][new_j].f == float('inf') or cell_details[new_i][new_j].f > f_new:
+							heapq.heappush(open_list, (f_new, new_i, new_j))
+							cell_details[new_i][new_j].f = f_new
+							cell_details[new_i][new_j].g = g_new
+							cell_details[new_i][new_j].h = h_new
+							cell_details[new_i][new_j].parent_i = i
+							cell_details[new_i][new_j].parent_j = j
+							cell_details[new_i][new_j].dir = dir
+							for coor in cell_details[i][j].unBlocked:
+								cell_details[new_i][new_j].unBlocked.append(list(coor))
+							if len(snakeBodySquare)> 0 and len(cell_details[i][j].unBlocked) < len(snakeBodySquare) + 1:
+								cell_details[new_i][new_j].unBlocked.append(
+									snakeBodySquare[len(snakeBodySquare) -len(cell_details[i][j].unBlocked) -1]
+								)
+					except Exception as e:
+						print(e)
+						print("Unblocked of parent", cell_details[i][j].unBlocked)
+						print("Row", i, "Col", j)
 
-					if cell_details[new_i][new_j].f == float('inf') or cell_details[new_i][new_j].f > f_new:
-						heapq.heappush(open_list, (f_new, new_i, new_j))
-						cell_details[new_i][new_j].f = f_new
-						cell_details[new_i][new_j].g = g_new
-						cell_details[new_i][new_j].h = h_new
-						cell_details[new_i][new_j].parent_i = i
-						cell_details[new_i][new_j].parent_j = j
-						cell_details[new_i][new_j].dir = dir
 	if not found_dest:
 		print("Failed to find the destination cell")
   
