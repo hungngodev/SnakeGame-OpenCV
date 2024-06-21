@@ -16,9 +16,9 @@ def is_valid(row, col, ROW, COL):
 	return (row >= 0) and (row < ROW) and (col >= 0) and (col < COL)
 
 def is_unblocked(grid, row, col, unBlockedArr):
-	# for unBlockedCell in unBlockedArr:
-	# 	if unBlockedCell[0] == row and unBlockedCell[1] == col:
-	# 		return 1
+	for unBlockedCell in unBlockedArr:
+		if unBlockedCell[0] == row and unBlockedCell[1] == col:
+			return 1
 	return grid[row][col] == 1
 
 def is_destination(row, col, dest):
@@ -106,13 +106,13 @@ def a_star_search(grid, src, dest, prevDir, snakeBody, square, COL, ROW, speed):
 						cell_details[new_i][new_j].parent_i = i
 						cell_details[new_i][new_j].parent_j = j
 						cell_details[new_i][new_j].dir = dir
-							# for coor in cell_details[i][j].unBlocked:
-							# 	cell_details[new_i][new_j].unBlocked.append(list(coor))
-							# if len(snakeBodySquare)> 0 and len(cell_details[i][j].unBlocked) < len(snakeBodySquare) + 1:
-							# 	cell_details[new_i][new_j].unBlocked.append(
-							# 		snakeBodySquare[len(snakeBodySquare) -len(cell_details[i][j].unBlocked) -1]
-							# 	)
-				
+						for coor in cell_details[i][j].unBlocked:
+							cell_details[new_i][new_j].unBlocked.append(list(coor))
+						if len(snakeBodySquare)> 0 and len(cell_details[i][j].unBlocked) < len(snakeBodySquare) + 1:
+							cell_details[new_i][new_j].unBlocked.append(
+								snakeBodySquare[len(snakeBodySquare) -len(cell_details[i][j].unBlocked) -1]
+							)
+			
 
 	if not found_dest:
 		print("Failed to find the destination cell")
