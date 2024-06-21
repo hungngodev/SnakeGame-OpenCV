@@ -147,14 +147,28 @@ while True:
                     solutionState= setUpSolutionState(gameState)
                     solutionState['changingDirection'] = False
             playFunc(gameState, solutionState)
-        except Exception as e:
-            print(e)
-            print("snakeHead", gameState['snakeHead'])
-            print("snakebody", gameState['snakeBody'])
+        except:
             print("Not Reachable")
             cv2.putText(gameState['img'],'Your Score is {}'.format(gameState['score']),(140,250), font, 1,(255,255,255),2,cv2.LINE_AA)
             cv2.imshow('a',gameState['img'])
             k = cv2.waitKey(0)
+            if k == ord('q'): break
+            if k == ord('r'):            
+                gameState= {
+                    "img": np.zeros((width *square, length*square,3), dtype='uint8'),
+                    "score": 0,
+                    "prevDir": 1,
+                    "key": 1,
+                    "save": False,
+                    "firstTime": False,
+                    "snakeHead": randomPoint(),
+                    "apple": randomPoint(),
+                    "curDir": np.random.randint(0,4),
+                }
+            gameState['snakeBody'] = createSnakeBody(gameState['snakeHead'], gameState['curDir'])
+            solutionState= setUpSolutionState(gameState)
+            continue
+
     gameState['snakeBody'].insert(0,list(gameState['snakeHead']))  
     gameState['prevDir'] = gameState['curDir']
 
