@@ -13,8 +13,8 @@ eyeColor  = (255,0,255)
 snakeHeadColor =(255,0,0)
 snakeBodyColor =  (0,255,0)
 font = cv2.FONT_HERSHEY_SIMPLEX
-speed = square
-initialLength = 1
+speed = 2
+initialLength = 6
 keyDelay= 1
 autoPlay =True
 
@@ -44,37 +44,32 @@ def wallCollide(snakeHead):
         return 0
 
 def touchBody(snakeBody, snakeHead):
-    # snakeHead = snakeBody[0]
     return snakeHead in snakeBody[1:]
 
-def drawing(snakeHead, img, snakeBody,apple, curDir, pathSolution):
+def drawing(snakeHead, img, snakeBody,apple, curDir):
     img = np.zeros((width *square, length*square,3), dtype='uint8')
     cv2.rectangle(img,(apple[0],apple[1]),(apple[0]+square,apple[1]+square),(0,0,255),-1)
-    cv2.rectangle(img, (snakeHead[0], snakeHead[1]), (snakeHead[0]+square, snakeHead[1]+square), snakeHeadColor, 3)
-    cv2.circle(img, snakeHead, 10, eyeColor, -1)
+    cv2.rectangle(img, (snakeHead[0], snakeHead[1]), (snakeHead[0]+square, snakeHead[1]+square), snakeHeadColor, -1)
+    for i in range(0, length* square, square):
+        cv2.line(img,(i,0),(i,length*square),(255,255,255),1)
     eyesCoordinates = []
     if curDir == 0: eyesCoordinates = [[snakeHead[0], snakeHead[1]], [snakeHead[0], snakeHead[1]+square]]
     elif curDir == 1: eyesCoordinates = [[snakeHead[0]+square, snakeHead[1]], [snakeHead[0]+square, snakeHead[1]+square]]
     elif curDir == 2: eyesCoordinates = [[snakeHead[0], snakeHead[1]+square], [snakeHead[0]+square, snakeHead[1]+square]]
     elif curDir == 3: eyesCoordinates = [[snakeHead[0], snakeHead[1]], [snakeHead[0]+square, snakeHead[1]]]
-    # cv2.circle(img,eyesCoordinates[0],10,eyeColor,-1)
-    # cv2.circle(img,eyesCoordinates[1],10,eyeColor,-1)
-    for i in range(square//speed -1 , len(snakeBody), square//speed):
-        cv2.circle(img, (snakeBody[i][0], snakeBody[i][1]), 5, eyeColor, -1)
-        cv2.rectangle(img, (snakeBody[i][0], snakeBody[i][1]), (snakeBody[i][0]+square, snakeBody[i][1]+square), snakeBodyColor, 3)
+    cv2.circle(img,eyesCoordinates[0],10,eyeColor,-1)
+    cv2.circle(img,eyesCoordinates[1],10,eyeColor,-1)
+    for i in range(10//speed , len(snakeBody), 1 ):
+        color = snakeHeadColor if i<square//speed else snakeBodyColor
+        cv2.rectangle(img, (snakeBody[i][0], snakeBody[i][1]), (snakeBody[i][0]+square, snakeBody[i][1]+square), color, -1)
     
-    if autoPlay:
-        for i in pathSolution['path']:
-            cv2.rectangle(img, (i[0], i[1]), (i[0]+square, i[1]+square), (255,255,255), 1)
-        for i in pathSolution['closedList']:
-            cv2.rectangle(img, (i[0], i[1]), (i[0]+square, i[1]+square), (255,123,98), 1)
     cv2.imshow('a',img)
     return img
 
 def createSnakeBody(snakeHead, curDir):
     snakeBody = []
   
-    for i in range(1, initialLength * round(square // speed)):
+    for i in range(1, (initialLength-1) * round(square // speed)):
             if curDir == 0:
                 snakeBody.append([snakeHead[0] + i * speed, snakeHead[1]])
             elif curDir == 1:
@@ -129,57 +124,14 @@ def setUpGame():
 
 gameState= setUpGame()
 
-def setUpSolutionState(gameState):
-    if autoPlay == False: return {}
-    solution = a_star_search( np.ones((width *square, length*square), dtype='uint8'), gameState['snakeHead'], gameState['apple'], gameState['curDir'], gameState['snakeBody'], square, length*square, width*square, speed)
-    solutionState = {
-        "path": solution[0],
-        "closedList": solution[1],
-        "currentStep": 0,
-        "changingDirection": False,
-    }
-    return solutionState
 
-def playFunc(gameState, solutionState):
-    gameState['curDir'] = solutionState['path'][solutionState['currentStep']][2]
-    solutionState['currentStep'] += 1
-    
-solutionState = setUpSolutionState(gameState)
 
 while True:
-    gameState['img'] = drawing(gameState['snakeHead'], gameState['img'], gameState['snakeBody'], gameState['apple'], gameState['curDir'], solutionState)
+    gameState['img'] = drawing(gameState['snakeHead'], gameState['img'], gameState['snakeBody'], gameState['apple'], gameState['curDir'])
         
     k = takeKeyInput(gameState)
     if k == -2: break
     
-    if autoPlay: 
-        try:
-            if solutionState['changingDirection']:
-                    solutionState= setUpSolutionState(gameState)
-                    solutionState['changingDirection'] = False
-            playFunc(gameState, solutionState)
-        except:
-            print("Not Reachable")
-            cv2.putText(gameState['img'],'Your Score is {}'.format(gameState['score']),(140,250), font, 1,(255,255,255),2,cv2.LINE_AA)
-            cv2.imshow('a',gameState['img'])
-            k = cv2.waitKey(0)
-            if k == ord('q'): break
-            if k == ord('r'):            
-                gameState= {
-                    "img": np.zeros((width *square, length*square,3), dtype='uint8'),
-                    "score": 0,
-                    "prevDir": 1,
-                    "key": 1,
-                    "save": False,
-                    "firstTime": False,
-                    "snakeHead": randomPoint(),
-                    "apple": randomPoint(),
-                    "curDir": np.random.randint(0,4),
-                }
-            gameState['snakeBody'] = createSnakeBody(gameState['snakeHead'], gameState['curDir'])
-            solutionState= setUpSolutionState(gameState)
-            continue
-
     gameState['snakeBody'].insert(0,list(gameState['snakeHead']))  
     gameState['prevDir'] = gameState['curDir']
 
@@ -195,8 +147,6 @@ while True:
     if gameState['snakeHead'] == gameState['apple']:
         gameState['snakeBody'].extend([list(gameState['snakeBody'][-1])]* (round(square//speed)-1))
         eatApple(gameState)
-        if autoPlay:
-            solutionState['changingDirection'] = True
     else:
         gameState['snakeBody'].pop()
          
@@ -226,7 +176,6 @@ while True:
                 "curDir": np.random.randint(0,4),
             }
             gameState['snakeBody'] = createSnakeBody(gameState['snakeHead'], gameState['curDir'])
-            solutionState= setUpSolutionState(gameState)
 
 
 
