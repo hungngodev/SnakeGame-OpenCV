@@ -58,7 +58,8 @@ def drawing(snakeHead, img, snakeBody,apple, curDir, pathSolution):
     if autoPlay:
         for i in pathSolution['path']:
             cv2.rectangle(img, (i[0], i[1]), (i[0]+square, i[1]+square), (255,255,255), 1)
-        
+        for i in pathSolution['closedList']:
+            cv2.rectangle(img, (i[0], i[1]), (i[0]+square, i[1]+square), (255,123,98), 1)
     cv2.imshow('a',img)
     return img
 
@@ -122,8 +123,10 @@ gameState= setUpGame()
 
 def setUpSolutionState(gameState):
     if autoPlay == False: return {}
+    solution = a_star_search( np.ones((width *square, length*square), dtype='uint8'), gameState['snakeHead'], gameState['apple'], gameState['curDir'], gameState['snakeBody'], square, length*square, width*square, speed)
     solutionState = {
-        "path": a_star_search( np.ones((width *square, length*square), dtype='uint8'), gameState['snakeHead'], gameState['apple'], gameState['curDir'], gameState['snakeBody'], square, length*square, width*square, speed),
+        "path": solution[0],
+        "closedList": solution[1],
         "currentStep": 0,
         "changingDirection": False,
     }

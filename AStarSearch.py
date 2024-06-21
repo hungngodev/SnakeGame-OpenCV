@@ -1,6 +1,6 @@
 import math
 import heapq
-from copy import deepcopy
+import numpy as np
 
 class Cell:
 	def __init__(self):
@@ -16,16 +16,16 @@ def is_valid(row, col, ROW, COL):
 	return (row >= 0) and (row < ROW) and (col >= 0) and (col < COL)
 
 def is_unblocked(grid, row, col, unBlockedArr):
-	for unBlockedCell in unBlockedArr:
-		if unBlockedCell[0] == row and unBlockedCell[1] == col:
-			return 1
+	# for unBlockedCell in unBlockedArr:
+	# 	if unBlockedCell[0] == row and unBlockedCell[1] == col:
+	# 		return 1
 	return grid[row][col] == 1
 
 def is_destination(row, col, dest):
 	return row == dest[0] and col == dest[1]
 
 def calculate_h_value(row, col, dest):
-	return abs(row - dest[0]) + abs(col - dest[1])
+	return (abs(row - dest[0]) + abs(col - dest[1]))
 
 def a_star_search(grid, src, dest, prevDir, snakeBody, square, COL, ROW, speed):
 	snakeBodySquare = []
@@ -91,37 +91,33 @@ def a_star_search(grid, src, dest, prevDir, snakeBody, square, COL, ROW, speed):
 					cell_details[new_i][new_j].parent_j = j
 					cell_details[new_i][new_j].dir = dir
 					print("The destination cell is found")
-					result = trace_path(cell_details, dest, src, speed, square)
+					result = trace_path(cell_details, dest, src, speed, square, closed_list)
 					found_dest = True
 					return result
 				else:
 					g_new = cell_details[i][j].g + 1.0
 					h_new = calculate_h_value(new_i, new_j, dest)
 					f_new = g_new + h_new
-					try: 
-						if cell_details[new_i][new_j].f == float('inf') or cell_details[new_i][new_j].f > f_new:
-							heapq.heappush(open_list, (f_new, new_i, new_j))
-							cell_details[new_i][new_j].f = f_new
-							cell_details[new_i][new_j].g = g_new
-							cell_details[new_i][new_j].h = h_new
-							cell_details[new_i][new_j].parent_i = i
-							cell_details[new_i][new_j].parent_j = j
-							cell_details[new_i][new_j].dir = dir
-							for coor in cell_details[i][j].unBlocked:
-								cell_details[new_i][new_j].unBlocked.append(list(coor))
-							if len(snakeBodySquare)> 0 and len(cell_details[i][j].unBlocked) < len(snakeBodySquare) + 1:
-								cell_details[new_i][new_j].unBlocked.append(
-									snakeBodySquare[len(snakeBodySquare) -len(cell_details[i][j].unBlocked) -1]
-								)
-					except Exception as e:
-						print(e)
-						print("Unblocked of parent", cell_details[i][j].unBlocked)
-						print("Row", i, "Col", j)
+					if cell_details[new_i][new_j].f == float('inf') or cell_details[new_i][new_j].f > f_new:
+						heapq.heappush(open_list, (f_new, new_i, new_j))
+						cell_details[new_i][new_j].f = f_new
+						cell_details[new_i][new_j].g = g_new
+						cell_details[new_i][new_j].h = h_new
+						cell_details[new_i][new_j].parent_i = i
+						cell_details[new_i][new_j].parent_j = j
+						cell_details[new_i][new_j].dir = dir
+							# for coor in cell_details[i][j].unBlocked:
+							# 	cell_details[new_i][new_j].unBlocked.append(list(coor))
+							# if len(snakeBodySquare)> 0 and len(cell_details[i][j].unBlocked) < len(snakeBodySquare) + 1:
+							# 	cell_details[new_i][new_j].unBlocked.append(
+							# 		snakeBodySquare[len(snakeBodySquare) -len(cell_details[i][j].unBlocked) -1]
+							# 	)
+				
 
 	if not found_dest:
 		print("Failed to find the destination cell")
   
-def trace_path(cell_details, dest, src, speed, square):
+def trace_path(cell_details, dest, src, speed, square, closed_list):
 	path = []
 	row = dest[0]
 	col = dest[1]
@@ -138,5 +134,10 @@ def trace_path(cell_details, dest, src, speed, square):
 	for i in range(len(path)):
 		for j in range(square//speed):
 			newPath.append([path[i][0], path[i][1], path[i][2]])
-	return newPath
+	elementInClosedList= np.where(np.array(closed_list) == 1)
+	temp = []
+	for i, j in zip(elementInClosedList[0], elementInClosedList[1]):
+		temp.append((int(i), int(j)))
+	print(temp)
+	return (newPath, temp)
 
