@@ -339,4 +339,5 @@ def pathWithDir(length, width, square):
             grid[currentPoint[0]][currentPoint[1]] = 2
         else:
             grid[currentPoint[0]][currentPoint[1]] = 3
+    
     return grid,circuit
