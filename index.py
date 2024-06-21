@@ -21,13 +21,21 @@ autoPlay =True
 def randomPoint():
     return [np.random.randint(1, width-1) * square, np.random.randint(1, length-1) * square]
 
-def eatApple(apple,score,snakeBody, snakeHead):
+def eatApple(gameState):
     newPoint = randomPoint()
-    while newPoint in snakeBody or newPoint == apple or newPoint == snakeHead:
-        newPoint = randomPoint()
-    apple = newPoint
-    score += 1
-    return apple, score
+    availableSpace= set()
+    for i in range(0, width):
+        for j in range(0, length):
+            availableSpace.add((i,j))
+    availableSpace.remove((gameState['apple'][0]//square, gameState['apple'][1]//square))  
+    for i in range(square//speed -1, len(gameState['snakeBody']), square//speed):
+        availableSpace.remove((gameState['snakeBody'][i][0]//square, gameState['snakeBody'][i][1]//square))
+    if len(availableSpace) == 0:
+        print("You Won")
+        return 1
+    newPoint = random.choice(list(availableSpace))
+    gameState['apple'] = [newPoint[0]*square, newPoint[1]*square]   
+    gameState['score'] += 1
 
 def wallCollide(snakeHead):
     if snakeHead[0]>=width*square or snakeHead[0]<0 or snakeHead[1]>=length*square or snakeHead[1]<0 :
@@ -185,8 +193,8 @@ while True:
         gameState['snakeHead'][1] -= speed
     
     if gameState['snakeHead'] == gameState['apple']:
-        gameState['apple'], gameState['score'] = eatApple(gameState['apple'], gameState['score'], gameState['snakeBody'], gameState['snakeHead'])
         gameState['snakeBody'].extend([list(gameState['snakeBody'][-1])]* (round(square//speed)-1))
+        eatApple(gameState)
         if autoPlay:
             solutionState['changingDirection'] = True
     else:
