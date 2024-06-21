@@ -2,8 +2,7 @@ import random
 import time
 import cv2
 import numpy as np
-from AStarSearch import a_star_search
-
+from HamiltonianCycle import pathWithDir
 
 width = 20
 length = 20
@@ -19,15 +18,24 @@ keyDelay= 1
 autoPlay =True
 
 def randomPoint():
-    return [np.random.randint(1, width-1) * square, np.random.randint(1, length-1) * square]
+    return [np.random.randint(0, width-1) * square, np.random.randint(0, length-1) * square]
 
-def eatApple(apple,score,snakeBody, snakeHead):
+def eatApple(gameState):
     newPoint = randomPoint()
-    while newPoint in snakeBody or newPoint == apple or newPoint == snakeHead:
-        newPoint = randomPoint()
-    apple = newPoint
-    score += 1
-    return apple, score
+    availableSpace= set()
+    for i in range(0, width):
+        for j in range(0, length):
+            availableSpace.add((i,j))
+    availableSpace.remove((gameState['apple'][0]//square, gameState['apple'][1]//square))  
+    for i in range(square//speed -1, len(gameState['snakeBody']), square//speed):
+        availableSpace.remove((gameState['snakeBody'][i][0]//square, gameState['snakeBody'][i][1]//square))
+    if len(availableSpace) == 0:
+        print("You Won")
+        return 1
+    newPoint = random.choice(list(availableSpace))
+    gameState['apple'] = [newPoint[0]*square, newPoint[1]*square]   
+    gameState['score'] += 1
+ 
 
 def wallCollide(snakeHead):
     if snakeHead[0]>=width*square or snakeHead[0]<0 or snakeHead[1]>=length*square or snakeHead[1]<0 :
@@ -54,12 +62,10 @@ def drawing(snakeHead, img, snakeBody,apple, curDir, pathSolution):
     for i in range(square//speed -1 , len(snakeBody), square//speed):
         cv2.circle(img, (snakeBody[i][0], snakeBody[i][1]), 5, eyeColor, -1)
         cv2.rectangle(img, (snakeBody[i][0], snakeBody[i][1]), (snakeBody[i][0]+square, snakeBody[i][1]+square), snakeBodyColor, 3)
-    
     if autoPlay:
-        for i in pathSolution['path']:
-            cv2.rectangle(img, (i[0], i[1]), (i[0]+square, i[1]+square), (255,255,255), 1)
-        for i in pathSolution['closedList']:
-            cv2.rectangle(img, (i[0], i[1]), (i[0]+square, i[1]+square), (255,123,98), 1)
+        path = pathSolution['path']
+        for i in range(0, len(path)-1):
+            cv2.line(img, (path[i][0]*square+ square//2, path[i][1]*square+ square//2), (path[i+1][0]*square + square//2, path[i+1][1]*square+ square//2), (255,255,255), 2)
     cv2.imshow('a',img)
     return img
 
@@ -103,7 +109,9 @@ def takeKeyInput(gameState):
         gameState['key'] = k
         gameState['save'] = True
         gameState['curDir'] = gameState['prevDir']
+        
 
+    
 def setUpGame():
     gameState= {
         "img": np.zeros((width *square, length*square,3), dtype='uint8'),
@@ -121,22 +129,19 @@ def setUpGame():
 
 gameState= setUpGame()
 
-def setUpSolutionState(gameState):
+def setUpSolutionState():
     if autoPlay == False: return {}
-    solution = a_star_search( np.ones((width *square, length*square), dtype='uint8'), gameState['snakeHead'], gameState['apple'], gameState['curDir'], gameState['snakeBody'], square, length*square, width*square, speed)
-    solutionState = {
-        "path": solution[0],
-        "closedList": solution[1],
-        "currentStep": 0,
-        "changingDirection": False,
+    solution= pathWithDir(length, width, square)
+    return {
+        "gridDir": solution[0],
+        "path": solution[1]
     }
-    return solutionState
 
 def playFunc(gameState, solutionState):
-    gameState['curDir'] = solutionState['path'][solutionState['currentStep']][2]
-    solutionState['currentStep'] += 1
+    snakeHead = gameState['snakeHead']
+    gameState['curDir'] = solutionState['gridDir'][snakeHead[0]//square][snakeHead[1]//square]
     
-solutionState = setUpSolutionState(gameState)
+solutionState = setUpSolutionState()
 
 while True:
     gameState['img'] = drawing(gameState['snakeHead'], gameState['img'], gameState['snakeBody'], gameState['apple'], gameState['curDir'], solutionState)
@@ -145,32 +150,7 @@ while True:
     if k == -2: break
     
     if autoPlay: 
-        try:
-            if solutionState['changingDirection']:
-                    solutionState= setUpSolutionState(gameState)
-                    solutionState['changingDirection'] = False
-            playFunc(gameState, solutionState)
-        except:
-            print("Not Reachable")
-            cv2.putText(gameState['img'],'Your Score is {}'.format(gameState['score']),(140,250), font, 1,(255,255,255),2,cv2.LINE_AA)
-            cv2.imshow('a',gameState['img'])
-            k = cv2.waitKey(0)
-            if k == ord('q'): break
-            if k == ord('r'):            
-                gameState= {
-                    "img": np.zeros((width *square, length*square,3), dtype='uint8'),
-                    "score": 0,
-                    "prevDir": 1,
-                    "key": 1,
-                    "save": False,
-                    "firstTime": False,
-                    "snakeHead": randomPoint(),
-                    "apple": randomPoint(),
-                    "curDir": np.random.randint(0,4),
-                }
-            gameState['snakeBody'] = createSnakeBody(gameState['snakeHead'], gameState['curDir'])
-            solutionState= setUpSolutionState(gameState)
-            continue
+        playFunc(gameState, solutionState)
 
     gameState['snakeBody'].insert(0,list(gameState['snakeHead']))  
     gameState['prevDir'] = gameState['curDir']
@@ -183,15 +163,19 @@ while True:
         gameState['snakeHead'][1] += speed
     elif gameState['curDir'] == 3:
         gameState['snakeHead'][1] -= speed
+
     
     if gameState['snakeHead'] == gameState['apple']:
-        gameState['apple'], gameState['score'] = eatApple(gameState['apple'], gameState['score'], gameState['snakeBody'], gameState['snakeHead'])
         gameState['snakeBody'].extend([list(gameState['snakeBody'][-1])]* (round(square//speed)-1))
-        if autoPlay:
-            solutionState['changingDirection'] = True
+        if eatApple(gameState) == 1: 
+            cv2.putText(gameState['img'],'Your Score is {}'.format(gameState['score']),(140,250), font, 1,(255,255,255),2,cv2.LINE_AA)
+            cv2.imshow('a',gameState['img'])
+            k = cv2.waitKey(0)
+            if k == ord('q'): break
     else:
         gameState['snakeBody'].pop()
-         
+
+
     wallHit = wallCollide(gameState['snakeHead'])
     bodyHit = touchBody(gameState['snakeBody'], gameState['snakeHead'])
     
@@ -219,8 +203,6 @@ while True:
             }
             gameState['snakeBody'] = createSnakeBody(gameState['snakeHead'], gameState['curDir'])
             solutionState= setUpSolutionState(gameState)
-
-
 
 
 
