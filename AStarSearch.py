@@ -109,11 +109,7 @@ def a_star_search(grid, src, dest, prevDir, snakeBody, square, COL, ROW, speed):
 						for coor in cell_details[i][j].unBlocked:
 							cell_details[new_i][new_j].unBlocked.append(list(coor))
 						if len(snakeBodySquare)> 0 and len(cell_details[i][j].unBlocked) < len(snakeBodySquare) + 1:
-							cell_details[new_i][new_j].unBlocked.append(
-								snakeBodySquare[len(snakeBodySquare) -len(cell_details[i][j].unBlocked) -1]
-							)
-			
-
+							cell_details[new_i][new_j].unBlocked.append(snakeBodySquare[len(snakeBodySquare) -len(cell_details[i][j].unBlocked) -1])
 	if not found_dest:
 		print("Failed to find the destination cell")
   
