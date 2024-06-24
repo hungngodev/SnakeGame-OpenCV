@@ -123,6 +123,8 @@ def setUpGame():
         "snakeHead": randomPoint(),
         "apple": randomPoint(),
         "curDir": np.random.randint(0,4),
+        "steps": 0,
+        
     }
     gameState['snakeBody'] = createSnakeBody(gameState['snakeHead'], gameState['curDir'])
     return gameState
@@ -165,20 +167,9 @@ while True:
             k = cv2.waitKey(0)
             if k == ord('q'): break
             if k == ord('r'):            
-                gameState= {
-                    "img": np.zeros((width *square, length*square,3), dtype='uint8'),
-                    "score": 0,
-                    "prevDir": 1,
-                    "key": 1,
-                    "save": False,
-                    "firstTime": False,
-                    "snakeHead": randomPoint(),
-                    "apple": randomPoint(),
-                    "curDir": np.random.randint(0,4),
-                }
-            gameState['snakeBody'] = createSnakeBody(gameState['snakeHead'], gameState['curDir'])
-            solutionState= setUpSolutionState(gameState)
-            continue
+                gameState= setUpGame()
+                solutionState= setUpSolutionState(gameState)
+                continue
 
     gameState['snakeBody'].insert(0,list(gameState['snakeHead']))  
     gameState['prevDir'] = gameState['curDir']
@@ -199,6 +190,9 @@ while True:
             solutionState['changingDirection'] = True
     else:
         gameState['snakeBody'].pop()
+    if (gameState['snakeHead'][0] % square == 0 and gameState['snakeHead'][1] % square == 0):
+        print(gameState['steps']*-0.1 + gameState['score']*10)
+        gameState['steps'] +=1
          
     wallHit = wallCollide(gameState['snakeHead'])
     bodyHit = touchBody(gameState['snakeBody'], gameState['snakeHead'])
@@ -214,18 +208,7 @@ while True:
         k = cv2.waitKey(0)
         if k == ord('q'): break
         if k == ord('r'):            
-            gameState= {
-                "img": np.zeros((width *square, length*square,3), dtype='uint8'),
-                "score": 0,
-                "prevDir": 1,
-                "key": 1,
-                "save": False,
-                "firstTime": False,
-                "snakeHead": randomPoint(),
-                "apple": randomPoint(),
-                "curDir": np.random.randint(0,4),
-            }
-            gameState['snakeBody'] = createSnakeBody(gameState['snakeHead'], gameState['curDir'])
+            gameState= setUpGame()
             solutionState= setUpSolutionState(gameState)
 
 
