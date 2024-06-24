@@ -339,5 +339,17 @@ def pathWithDir(length, width, square):
             grid[currentPoint[0]][currentPoint[1]] = 2
         else:
             grid[currentPoint[0]][currentPoint[1]] = 3
-    
-    return grid,circuit
+    reverseGrid = np.zeros((width, length), dtype='int')
+    reverseCircuit = circuit[::-1]
+    for i in range(0, len(reverseCircuit)-1):
+        currentPoint = reverseCircuit[i]
+        nextPoint = reverseCircuit[i+1]
+        if currentPoint[0] < nextPoint[0]:
+            reverseGrid[nextPoint[0]][nextPoint[1]] = 3
+        elif currentPoint[0] > nextPoint[0]:
+            reverseGrid[nextPoint[0]][nextPoint[1]] = 2
+        elif currentPoint[1] < nextPoint[1]:
+            reverseGrid[nextPoint[0]][nextPoint[1]] = 1
+        else:
+            reverseGrid[nextPoint[0]][nextPoint[1]] = 0
+    return grid,circuit, reverseGrid

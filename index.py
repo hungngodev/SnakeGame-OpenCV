@@ -29,17 +29,17 @@ gridDir = np.array( [[1, 3, 1, 3, 3, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 3, 3, 1, 3
            [1, 0, 3, 0, 3, 0, 3, 0, 3, 0, 3, 0, 3, 0, 3, 0, 3, 0, 1, 0],
            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 0]])
 
-width = 20
-length = 20
+width = 10
+length = 10
 square =30
 delay = 0.00005
 eyeColor  = (255,0,255)
 snakeHeadColor =(255,0,0)
 snakeBodyColor =  (0,255,0)
 font = cv2.FONT_HERSHEY_SIMPLEX
-speed = 10
+speed =square
 initialLength = 1
-keyDelay= 1
+keyDelay= 0
 autoPlay =True
 
 def randomPoint():
@@ -77,6 +77,8 @@ def drawing(snakeHead, img, snakeBody,apple, curDir, pathSolution):
     cv2.rectangle(img,(apple[0],apple[1]),(apple[0]+square,apple[1]+square),(0,0,255),-1)
     cv2.rectangle(img, (snakeHead[0], snakeHead[1]), (snakeHead[0]+square, snakeHead[1]+square), snakeHeadColor, 3)
     cv2.circle(img, snakeHead, 10, eyeColor, -1)
+    for i in range(square//speed -1 , len(snakeBody), square//speed):
+        cv2.line(img, (0,i), (width*square, i), (255,255,255), 1)
     eyesCoordinates = []
     if curDir == 0: eyesCoordinates = [[snakeHead[0], snakeHead[1]], [snakeHead[0], snakeHead[1]+square]]
     elif curDir == 1: eyesCoordinates = [[snakeHead[0]+square, snakeHead[1]], [snakeHead[0]+square, snakeHead[1]+square]]
@@ -152,8 +154,8 @@ def setUpSolutionState():
     if autoPlay == False: return {}
     solution= pathWithDir(length, width, square)
     return {
-        "gridDir": gridDir,
-        "path": path
+        "gridDir": solution[0],
+        "path": solution[1],
     }
 
 def playFunc(gameState, solutionState):
@@ -170,71 +172,49 @@ def playFunc(gameState, solutionState):
                 i = i - j + 1
                 j = 0
         return False
+    def detectInRange(snakeHead, point):
+        return abs(snakeHead[0]//square - point[0]) <= 1 and abs(snakeHead[1]//square - point[1]) <= 1
 
     snakeHead = gameState['snakeHead']
     applePerspective = [gameState['apple'][0] - snakeHead[0], gameState['apple'][1] - snakeHead[1]]
     prevDir = gameState['prevDir']
     hamilDir = solutionState['gridDir'][snakeHead[0]//square][snakeHead[1]//square]
     snakeBodyCoor = [ (gameState['snakeBody'][i][0]//square, gameState['snakeBody'][i][1]//square) for i in range(square//speed -1, len(gameState['snakeBody']), square//speed)]
-
-    if isSubArray(solutionState['path'], snakeBodyCoor):
-        print ("Body fulled")
     gameState['curDir'] = hamilDir
-    if prevDir != hamilDir and (snakeHead[0] % square == 0 and snakeHead[1] % square == 0) and (isSubArray(solutionState['path'],  snakeBodyCoor) or len(gameState['snakeBody']) < square//speed):
-        if applePerspective[0] > 0 and prevDir != 0:
+    applePosition = solutionState['path'].index((gameState['apple'][0]//square, gameState['apple'][1]//square))
+    print("applePosition", applePosition,(gameState['apple'][0]//square, gameState['apple'][1]//square))
+    current = applePosition
+    if not( snakeHead[0] % square != 0 or snakeHead[1] % square != 0):
+        while True:
+            print(solutionState['path'][current])
+            if detectInRange(snakeHead, solutionState['path'][current]):
+                print("Found nearest Point" ,solutionState['path'][current])
+                break
+            current -= 1
+            if current == 0:
+                current = len(solutionState['path']) - 2
+                
+        if snakeHead[0] < solutionState['path'][current][0]:
             gameState['curDir'] = 1
-        elif applePerspective[0] < 0 and prevDir != 1:
+        elif snakeHead[0] > solutionState['path'][current][0]:
             gameState['curDir'] = 0
-        elif applePerspective[1] > 0 and prevDir != 3:
+        elif snakeHead[1] < solutionState['path'][current][1]:
             gameState['curDir'] = 2
-        elif applePerspective[1] < 0 and prevDir != 2:
+        else:
             gameState['curDir'] = 3
-        if applePerspective[0] > 0:
-            if prevDir !=0:
-                gameState['curDir'] = 1
-            else: 
-                if applePerspective[1] > 0: 
-                    gameState['curDir'] = 2
-                else:
-                    gameState['curDir'] = 3
-        elif applePerspective[0] < 0:
-            if prevDir !=1:
-                gameState['curDir'] = 0
-            else: 
-                if applePerspective[1] > 0:
-                    gameState['curDir'] = 2
-                else:
-                    gameState['curDir'] = 3
-        elif applePerspective[1] > 0:
-            if prevDir !=3:
-                gameState['curDir'] = 2
-            else: 
-                if applePerspective[0] > 0:
-                    gameState['curDir'] = 1
-                else:
-                    gameState['curDir'] = 0
-        elif applePerspective[1] < 0:
-            if prevDir !=2:
-                gameState['curDir'] = 3
-            else: 
-                if applePerspective[0] > 0:
-                    gameState['curDir'] = 1
-                else:
-                    gameState['curDir'] = 0
-        fakeSnakeHead = list(snakeHead)
-        if gameState['curDir'] == 1:
-            fakeSnakeHead[0] += square
-        elif gameState['curDir'] == 0:
-            fakeSnakeHead[0] -= square
-        elif gameState['curDir'] == 2:
-            fakeSnakeHead[1] += square
-        elif gameState['curDir'] == 3:
-            fakeSnakeHead[1] -= square
-        fakeSnakeBody = list(gameState['snakeBody'])
-        if touchBody(fakeSnakeBody, fakeSnakeHead) or wallCollide(fakeSnakeHead):
-            gameState['curDir'] = gameState['prevDir']
-    else:
-        gameState['curDir'] = hamilDir
+        print(gameState['curDir'])
+        # fakeHead = list(snakeHead)
+        # if gameState['curDir'] == 1:
+        #     fakeHead[0] += speed
+        # elif gameState['curDir'] == 0:
+        #     fakeHead[0] -= speed
+        # elif gameState['curDir'] == 2:
+        #     fakeHead[1] += speed
+        # elif gameState['curDir'] == 3:
+        #     fakeHead[1] -= speed
+
+        # if wallCollide(fakeHead) or touchBody(snakeBodyCoor, fakeHead):
+        #     gameState['curDir'] = hamilDir
     
 solutionState = setUpSolutionState()
 
