@@ -149,7 +149,7 @@ def setUpGame():
         "prevDir": 1,
         "key": 1,
         "save": False,
-        "firstTime": not autoPlay,
+        "firstTime": True,
         "snakeHead": randomPoint(),
         "apple": randomPoint(),
         "curDir": np.random.randint(0,4),
@@ -163,6 +163,11 @@ gameState= setUpGame()
 def setUpSolutionState():
     if autoPlay == False: return {}
     solution= pathWithDir(length, width, square)
+    # return {
+    #     "gridDir" : gridDir,
+    #     "path": path,
+    #     "wrapUp" : 0
+    # }
     return {
         "gridDir": solution[0],
         "path": solution[1],
@@ -180,7 +185,7 @@ def playFunc(gameState, solutionState):
     prevDir = gameState['prevDir']
     gameState['curDir'] = hamilDir
     
-    skipIfElse = gameState['score'] < 2
+    skipIfElse = False
     if skipIfElse:
         applePerspective = (gameState['apple'][0]//square - snakeHead[0]//square, gameState['apple'][1]//square - snakeHead[1]//square)
         if applePerspective[0] > 0 and prevDir != 0:
@@ -196,8 +201,11 @@ def playFunc(gameState, solutionState):
         applePosition = solutionState['path'].index((gameState['apple'][0]//square, gameState['apple'][1]//square))
         headPosition = solutionState['path'].index(normalizedHead)
         
-        reverse = solutionState['wrapUp'] == 1
-        solutionState['wrapUp'] = 0 if reverse else 1
+        reverse = solutionState['wrapUp'] > 5
+        if reverse:
+            solutionState['wrapUp'] = 0
+        else:
+            solutionState['wrapUp'] += 1
         if reverse:
             current = applePosition
         else:
@@ -205,7 +213,7 @@ def playFunc(gameState, solutionState):
                     
         count =0
         skip = gameState['prevDir'] != hamilDir if gameState['totalScore'] > 440 else True
-        skip2 = gameState['totalScore'] < 500
+        skip2 = gameState['totalScore'] < 450
         if skip and skip2:
             if not( snakeHead[0] % square != 0 or snakeHead[1] % square != 0):
                 found= False
@@ -213,35 +221,31 @@ def playFunc(gameState, solutionState):
                     if detectInRange(normalizedHead, solutionState['path'][current]):
                         if not (solutionState['path'][current] in snakeBodyCoor):
                             found = True
-                            print("Found point",solutionState['path'][current])
                             break
                         else:
                             print("snake body is here",solutionState['path'][current])
                     current -= 1
                     if reverse:
                         if current==0:
-                            current = len(solutionState['path'])-2
+                            current = len(solutionState['path'])-1
                     else:
                         if current == 0 or current == headPosition:
                             break
                     count += 1
-                if not found:
-                    print("Not found")
-
-                if normalizedHead[0] < solutionState['path'][current][0]:
-                    gameState['curDir'] = 1
-                elif normalizedHead[0] > solutionState['path'][current][0]:
-                    gameState['curDir'] = 0
-                elif normalizedHead[1] < solutionState['path'][current][1]:
-                    gameState['curDir'] = 2
-                else:
-                    gameState['curDir'] = 3
+                    if normalizedHead[0] < solutionState['path'][current][0]:
+                        gameState['curDir'] = 1
+                    elif normalizedHead[0] > solutionState['path'][current][0]:
+                        gameState['curDir'] = 0
+                    elif normalizedHead[1] < solutionState['path'][current][1]:
+                        gameState['curDir'] = 2
+                    else:
+                        gameState['curDir'] = 3
 
 
 fields = ['Score', 'Total Score', 'Steps']
 filename = "data.csv"
 dicttionary = []
-for i in range(1):
+for i in range(10):
     while True:
         gameState['img'] = drawing(gameState['snakeHead'], gameState['img'], gameState['snakeBody'], gameState['apple'], gameState['curDir'], solutionState)
             
@@ -288,17 +292,16 @@ for i in range(1):
         
         if bodyHit: 
             print("Hit body")
+            
+        gameState['firstTime'] = False
 
         if wallHit or bodyHit :
             cv2.putText(gameState['img'],'Your Score is {}'.format(gameState['totalScore']),(140,250), font, 1,(255,255,255),2,cv2.LINE_AA)
             cv2.imshow('a',gameState['img'])
             print(gameState['score'])
 
-            # k = cv2.waitKey(0)
-            # if k == ord('q'): break
-            # if k == ord('r'):            
-            #     gameState= setUpGame()
-            #     solutionState= setUpSolutionState()
+            k = cv2.waitKey(0)
+            if k == ord('q'): break
             dicttionary.append({'Score': gameState['score'], 'Total Score': gameState['totalScore'], 'Steps': gameState['steps']})
             gameState= setUpGame()
             solutionState= setUpSolutionState()
