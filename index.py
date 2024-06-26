@@ -7,8 +7,8 @@ import csv
 
 width = 20
 length = 20
-square =40
-delay = 0.00005
+square =20
+delay = 0.02
 eyeColor  = (255,0,255)
 snakeHeadColor =(255,0,0)
 snakeBodyColor =  (0,255,0)
@@ -16,7 +16,6 @@ font = cv2.FONT_HERSHEY_SIMPLEX
 speed =5
 initialLength = 1
 keyDelay = 1
-autoPlay =False
 
 def randomPoint():
     return [np.random.randint(0, width-1) * square, np.random.randint(0, length-1) * square]
@@ -50,11 +49,10 @@ def touchBody(snakeBody, snakeHead):
     snakeHead = snakeBody[0]
     return snakeHead in snakeBody[1:]
 
-def drawing(snakeHead, img, snakeBody,apple, curDir, pathSolution):
+def drawing(snakeHead, img, snakeBody,apple, curDir):
     img = np.zeros((width *square, length*square,3), dtype='uint8')
     cv2.rectangle(img,(apple[0],apple[1]),(apple[0]+square,apple[1]+square),(0,0,255),-1)
     cv2.rectangle(img, (snakeHead[0], snakeHead[1]), (snakeHead[0]+square, snakeHead[1]+square), snakeHeadColor, 3)
-    # cv2.circle(img, snakeHead, 10, eyeColor, -1)
     for i in range(0, width*square, square):
         cv2.line(img, (i,0), (i, length*square), (255,194,255), 1)
     for i in range(0, length*square, square):
@@ -76,7 +74,7 @@ def drawing(snakeHead, img, snakeBody,apple, curDir, pathSolution):
 
 def createSnakeBody(snakeHead, curDir):
     snakeBody = []
-  
+
     for i in range(1, initialLength * round(square // speed)):
             if curDir == 0:
                 snakeBody.append([snakeHead[0] + i * speed, snakeHead[1]])
@@ -100,6 +98,7 @@ def takeKeyInput(gameState):
                 k = cv2.waitKey(keyDelay)
             else:
                 break
+
     if gameState['save']:
         k = gameState['key']
         gameState['save'] = False
@@ -109,6 +108,12 @@ def takeKeyInput(gameState):
     elif k == ord('w') and gameState['prevDir'] not in [2, 3]: gameState['curDir'] = 3
     elif k == ord('s') and gameState['prevDir'] not in [3, 2]: gameState['curDir'] = 2
     elif k == ord('q'): return -2
+    
+    if (gameState['prevDir'] != gameState['curDir'] and (gameState['snakeHead'][0] % square != 0 or gameState['snakeHead'][1] % square != 0)):
+        print("Invalid move")
+        gameState['key'] = k
+        gameState['save'] = True
+        gameState['curDir'] = gameState['prevDir']
     
     
 def setUpGame():
@@ -128,127 +133,55 @@ def setUpGame():
     gameState['snakeBody'] = createSnakeBody(gameState['snakeHead'], gameState['curDir'])
     return gameState
 
+
 gameState= setUpGame()
 
-def setUpSolutionState():
-    return {}
 
-solutionState = setUpSolutionState()
+while True:
+    gameState['img'] = drawing(gameState['snakeHead'], gameState['img'], gameState['snakeBody'], gameState['apple'], gameState['curDir'])
+        
+    k = takeKeyInput(gameState)
+    if k == -2: 
+        print("Quit")
+        cv2.destroyAllWindows()
+        break
 
-def playFunc(gameState, solutionState):
-    applePerspective = [gameState['apple'][0] - gameState['snakeHead'][0], gameState['apple'][1] - gameState['snakeHead'][1]]
-    prevDir = gameState['prevDir']
+    gameState['snakeBody'].insert(0,list(gameState['snakeHead']))  
+    gameState['prevDir'] = gameState['curDir']
+
+    if gameState['curDir'] == 1:
+        gameState['snakeHead'][0] += speed
+    elif gameState['curDir'] == 0:
+        gameState['snakeHead'][0] -= speed
+    elif gameState['curDir'] == 2:
+        gameState['snakeHead'][1] += speed
+    elif gameState['curDir'] == 3:
+        gameState['snakeHead'][1] -= speed
+
+    if gameState['snakeHead'] == gameState['apple']:
+        gameState['snakeBody'].extend([list(gameState['snakeBody'][-1])]* (round(square//speed)-1))
+        eatApple(gameState)
+    else:
+        gameState['snakeBody'].pop()
+        
+    wallHit = wallCollide(gameState['snakeHead'])
+    bodyHit = touchBody(gameState['snakeBody'], gameState['snakeHead'])
     
-    if applePerspective[0] > 0 and prevDir != 0:
-        gameState['curDir'] = 1
-    elif applePerspective[0] < 0 and prevDir != 1:
-        gameState['curDir'] = 0
-    elif applePerspective[1] > 0 and prevDir != 3:
-        gameState['curDir'] = 2
-    elif applePerspective[1] < 0 and prevDir != 2:
-        gameState['curDir'] = 3
-    if applePerspective[0] > 0:
-        if prevDir !=0:
-            gameState['curDir'] = 1
-        else: 
-            if applePerspective[1] > 0:
-                gameState['curDir'] = 2
-            else:
-                gameState['curDir'] = 3
-    elif applePerspective[0] < 0:
-        if prevDir !=1:
-            gameState['curDir'] = 0
-        else: 
-            if applePerspective[1] > 0:
-                gameState['curDir'] = 2
-            else:
-                gameState['curDir'] = 3
-    elif applePerspective[1] > 0:
-        if prevDir !=3:
-            gameState['curDir'] = 2
-        else: 
-            if applePerspective[0] > 0:
-                gameState['curDir'] = 1
-            else:
-                gameState['curDir'] = 0
-    elif applePerspective[1] < 0:
-        if prevDir !=2:
-            gameState['curDir'] = 3
-        else: 
-            if applePerspective[0] > 0:
-                gameState['curDir'] = 1
-            else:
-                gameState['curDir'] = 0
+    if wallHit: print("Hit wall")
     
-fields = ['Score', 'Total Score', 'Steps']
-filename = "data.csv"
-dicttionary = []
-
-for i in range(10):
-    while True:
-        gameState['img'] = drawing(gameState['snakeHead'], gameState['img'], gameState['snakeBody'], gameState['apple'], gameState['curDir'], solutionState)
-            
-        k = takeKeyInput(gameState)
-        if k == -2: break
-        
-        if autoPlay: 
-            playFunc(gameState, solutionState) 
-            
-        if (gameState['prevDir'] != gameState['curDir'] and (gameState['snakeHead'][0] % square != 0 or gameState['snakeHead'][1] % square != 0)):
-            gameState['key'] = k
-            gameState['save'] = True
-            gameState['curDir'] = gameState['prevDir']
-
-        gameState['snakeBody'].insert(0,list(gameState['snakeHead']))  
-        gameState['prevDir'] = gameState['curDir']
-
-        if gameState['curDir'] == 1:
-            gameState['snakeHead'][0] += speed
-        elif gameState['curDir'] == 0:
-            gameState['snakeHead'][0] -= speed
-        elif gameState['curDir'] == 2:
-            gameState['snakeHead'][1] += speed
-        elif gameState['curDir'] == 3:
-            gameState['snakeHead'][1] -= speed
-
-        if gameState['snakeHead'] == gameState['apple']:
-            gameState['snakeBody'].extend([list(gameState['snakeBody'][-1])]* (round(square//speed)-1))
-            eatApple(gameState)
-        else:
-            gameState['snakeBody'].pop()
-            
-        if gameState['snakeHead'][0] % square == 0 and gameState['snakeHead'][1] % square == 0:
-            gameState['steps'] += 1
-            total= (gameState['steps']* 0.1* -1 + gameState['score']*10)
-            gameState['totalScore'] = total
-            print(gameState['steps']* 0.1* -1 + gameState['score']*10)
-
-        # keyDelay = 0 if gameState['totalScore'] > 400 else 1
-        wallHit = wallCollide(gameState['snakeHead'])
-        bodyHit = touchBody(gameState['snakeBody'], gameState['snakeHead'])
-        
-        if wallHit: print("Hit wall")
-        
-        if bodyHit: 
-            print("Hit body")
-        gameState['firstTime'] = False
-        if wallHit or bodyHit :
-            cv2.putText(gameState['img'],'Your Score is {}'.format(gameState['totalScore']),(140,250), font, 1,(255,255,255),2,cv2.LINE_AA)
-            cv2.imshow('a',gameState['img'])
-            print(gameState['score'])
-
-
-            dicttionary.append({'Score': gameState['score'], 'Total Score': gameState['totalScore'], 'Steps': gameState['steps']})
-            gameState= setUpGame()
-
+    if bodyHit: 
+        print("Hit body")
+    gameState['firstTime'] = False
+    if wallHit or bodyHit :
+        cv2.putText(gameState['img'],'Your Score is {}'.format(gameState['totalScore']),(140,250), font, 1,(255,255,255),2,cv2.LINE_AA)
+        cv2.imshow('a',gameState['img'])
+        k = cv2.waitKey(0)
+        print(k)
+        print(ord('q'))
+        if k == ord('q'): 
+            print("Quit")
+            cv2.destroyAllWindows()
             break
-
-
-with open(filename, 'w') as csvfile:
-    k = cv2.waitKey(0)
-    print("Writing to csv file")    
-    writer = csv.DictWriter(csvfile, fieldnames = fields)
-    writer.writeheader()
-    writer.writerows(dicttionary)
-
+        gameState= setUpGame()
+        break
 
