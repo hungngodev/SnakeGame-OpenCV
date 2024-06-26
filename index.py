@@ -13,10 +13,10 @@ eyeColor  = (255,0,255)
 snakeHeadColor =(255,0,0)
 snakeBodyColor =  (0,255,0)
 font = cv2.FONT_HERSHEY_SIMPLEX
-speed =square
+speed =5
 initialLength = 1
 keyDelay = 1
-autoPlay =True
+autoPlay =False
 
 def randomPoint():
     return [np.random.randint(0, width-1) * square, np.random.randint(0, length-1) * square]
