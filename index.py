@@ -124,7 +124,7 @@ def setUpGame():
         "prevDir": 1,
         "key": 1,
         "save": False,
-        "firstTime": True,
+        "firstTime":False,
         "snakeHead": randomPoint(),
         "apple": randomPoint(),
         "curDir": np.random.randint(0,4),
@@ -175,8 +175,6 @@ for i in range(10):
                 cv2.putText(gameState['img'],'Your Score is {}'.format(gameState['totalScore']),(140,250), font, 1,(255,255,255),2,cv2.LINE_AA)
                 cv2.imshow('a',gameState['img'])
                 print(gameState['score'])
-                k = cv2.waitKey(0)
-                if k == ord('q'): break
 
                 dicttionary.append({'Score': gameState['score'], 'Total Score': gameState['totalScore'], 'Steps': gameState['steps']})
                 gameState= setUpGame()
@@ -228,60 +226,19 @@ for i in range(10):
             cv2.imshow('a',gameState['img'])
             print(gameState['score'])
 
-            k = cv2.waitKey(0)
-            if k == ord('q'): break
-
             dicttionary.append({'Score': gameState['score'], 'Total Score': gameState['totalScore'], 'Steps': gameState['steps']})
             gameState= setUpGame()
             break
 
 
 with open(filename, 'w') as csvfile:
+    k =cv2.waitKey(0)
     print("Writing to csv file")    
     writer = csv.DictWriter(csvfile, fieldnames = fields)
     writer.writeheader()
     writer.writerows(dicttionary)
+    print("Writing complete")
 
 
-    # if applePerspective[0] > 0 and prevDir != 0:
-    #     gameState['curDir'] = 1
-    # elif applePerspective[0] < 0 and prevDir != 1:
-    #     gameState['curDir'] = 0
-    # elif applePerspective[1] > 0 and prevDir != 3:
-    #     gameState['curDir'] = 2
-    # elif applePerspective[1] < 0 and prevDir != 2:
-    #     gameState['curDir'] = 3
-    # if applePerspective[0] > 0:
-    #     if prevDir !=0:
-    #         gameState['curDir'] = 1
-    #     else: 
-    #         if applePerspective[1] > 0:
-    #             gameState['curDir'] = 2
-    #         else:
-    #             gameState['curDir'] = 3
-    # elif applePerspective[0] < 0:
-    #     if prevDir !=1:
-    #         gameState['curDir'] = 0
-    #     else: 
-    #         if applePerspective[1] > 0:
-    #             gameState['curDir'] = 2
-    #         else:
-    #             gameState['curDir'] = 3
-    # elif applePerspective[1] > 0:
-    #     if prevDir !=3:
-    #         gameState['curDir'] = 2
-    #     else: 
-    #         if applePerspective[0] > 0:
-    #             gameState['curDir'] = 1
-    #         else:
-    #             gameState['curDir'] = 0
-    # elif applePerspective[1] < 0:
-    #     if prevDir !=2:
-    #         gameState['curDir'] = 3
-    #     else: 
-    #         if applePerspective[0] > 0:
-    #             gameState['curDir'] = 1
-    #         else:
-    #             gameState['curDir'] = 0
     
 
