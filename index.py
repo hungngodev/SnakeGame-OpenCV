@@ -219,6 +219,7 @@ def playFunc(gameState, solutionState):
                     gameState['curDir'] = 2
                 else:
                     gameState['curDir'] = 3
+        
 fields = ['Score', 'Total Score', 'Steps']
 filename = "individual.csv"
 dicttionary = []
