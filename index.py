@@ -104,7 +104,7 @@ def takeKeyInput(gameState):
         gameState['save'] = False
 
     if k == ord('a') and gameState['prevDir'] not in [1, 0]: gameState['curDir'] = 0
-    elif k == ord('d') and gameState['prevDir'] not in [0, 1]: gameState['curDir'] = 1
+    elif k == ord('d') and gameState['prevDir'] not in [0, 1]: gameState ['curDir'] = 1
     elif k == ord('w') and gameState['prevDir'] not in [2, 3]: gameState['curDir'] = 3
     elif k == ord('s') and gameState['prevDir'] not in [3, 2]: gameState['curDir'] = 2
     elif k == ord('q'): return -2
