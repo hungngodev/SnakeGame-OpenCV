@@ -7,7 +7,7 @@ import csv
 
 width = 20
 length = 20
-square =20
+square =40
 delay = 0.02
 eyeColor  = (255,0,255)
 snakeHeadColor =(255,0,0)
@@ -110,7 +110,6 @@ def takeKeyInput(gameState):
     elif k == ord('q'): return -2
     
     if (gameState['prevDir'] != gameState['curDir'] and (gameState['snakeHead'][0] % square != 0 or gameState['snakeHead'][1] % square != 0)):
-        print("Invalid move")
         gameState['key'] = k
         gameState['save'] = True
         gameState['curDir'] = gameState['prevDir']
@@ -124,8 +123,8 @@ def setUpGame():
         "prevDir": 1,
         "key": 1,
         "save": False,
-        "firstTime": False,
-        "snakeHead": randomPoint(),
+        "firstTime": True,
+        "snakeHead": [np.random.randint(0, width-2) * square, np.random.randint(0, length-2) * square], # [x, y
         "apple": randomPoint(),
         "curDir": np.random.randint(0,4),
         "steps": 0
