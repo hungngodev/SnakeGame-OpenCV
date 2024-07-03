@@ -28,15 +28,15 @@ SPEED = 100000
 LENGTH = 20
 WIDTH = 20
 
-EAT_APPLE = 10
+EAT_APPLE = 10000
 DEAD = -10
+WALK = -0.1
 
 class SnakeGameAI:
 
     def __init__(self, w=LENGTH*BLOCK_SIZE, h=WIDTH* BLOCK_SIZE):
         self.w = w
         self.h = h
-        # init display
         self.display = pygame.display.set_mode((self.w, self.h))
         pygame.display.set_caption('Snake')
         self.clock = pygame.time.Clock()
@@ -79,7 +79,7 @@ class SnakeGameAI:
         self.snake.insert(0, self.head)
         
         # 3. check if game over
-        reward = 0
+        reward = WALK
         game_over = False
         if self.is_collision() or self.frame_iteration > 100*len(self.snake):
             game_over = True
