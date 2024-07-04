@@ -79,8 +79,6 @@ def train():
             if update % NUM_UPDATES == 0 and len(agent.memory) > BATCH_SIZE:
                 agent.update_descent()
                 
-                pass
-            
             if done:
                 game.reset()
                 agent.n_games += 1
