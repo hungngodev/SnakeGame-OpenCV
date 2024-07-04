@@ -10,7 +10,7 @@ from agent import Agent
 BATCH_SIZE = 1000
 
 LR = 0.001
-NUM_UPDATES = 1000
+NUM_UPDATES = 20
 SOFT_UPDATE = 0.001
 EPSILON = 0
 
