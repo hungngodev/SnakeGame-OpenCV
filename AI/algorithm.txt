@@ -1,0 +1,23 @@
+Initialize a Q-Network with random weight w
+Create a buffer memory for storing (states, actions, reward, next_state, done)
+
+while Train do:
+    for i to 2000 do: 
+        choose the best action with a probability of E (E will decay)
+        
+        add the current state to buffer memory 
+
+        input the current state for the Q-Network to do gradient-descent:
+            Expected value Q = Q(current state)
+
+            New value Q1 = R(current state) + Y * Q(next state) * (1-done)
+
+            compute loss (Q1 - Q)^2
+
+            backward and do gradient-descent
+            
+
+        if done do:
+            take a random sample BATCH_SIZE data from the memory
+
+            perform gradient-descent for those data
