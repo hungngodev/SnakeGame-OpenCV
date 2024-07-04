@@ -4,15 +4,25 @@ import torch.optim as optim
 import torch.nn.functional as F
 import os
 
-class Linear_QNet(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size):
+class QNet(nn.Module):
+    def __init__(self, MODEL_CONFIG):
         super().__init__()
-        self.linear1 = nn.Linear(input_size, hidden_size)
-        self.linear2 = nn.Linear(hidden_size, output_size)
-
+        input_size = MODEL_CONFIG['input']
+        self.hiddenLayer = MODEL_CONFIG['hiddenLayer']
+        output_size = MODEL_CONFIG['output']
+        for idx, layer in enumerate(self.hiddenLayer):
+            if idx == 0:
+                setattr(self, f'hidden{idx}', nn.Linear(input_size, layer['size']))
+            else:
+                setattr(self, f'hidden{idx}', nn.Linear(self.hiddenLayer[idx-1]['size'], layer['size']))
+            # setattr(self, f'activation{idx}', getattr(F, layer['activation']))
+        setattr(self, f'output', nn.Linear(self.hiddenLayer[-1]['size'], output_size))
+        
     def forward(self, x):
-        x = F.relu(self.linear1(x))
-        x = self.linear2(x)
+        for idx in range(len(self.hiddenLayer)):
+            # activation = getattr(self, f'activation{idx}')(x)
+            x= F.relu(getattr(self, f'hidden{idx}')(x))
+        x = getattr(self, f'output')(x)
         return x
 
     def save(self, file_name='model.pth'):
@@ -22,7 +32,6 @@ class Linear_QNet(nn.Module):
 
         file_name = os.path.join(model_folder_path, file_name)
         torch.save(self.state_dict(), file_name)
-
 
 class TargetNetworkQTrainer:
     def __init__(self, model, model_target, lr, gamma, sfu):

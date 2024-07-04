@@ -3,7 +3,7 @@ import random
 import numpy as np
 from collections import deque
 from game import SnakeGameAI, Direction, Point
-from model import Linear_QNet, TargetNetworkQTrainer
+from model import  TargetNetworkQTrainer, QNet
 from helper import plot
 
 MAX_MEMORY = 100000
@@ -16,6 +16,21 @@ EPSILON = 0
 
 GAMMA = 0.9
 
+MODEL_CONFIG = {
+    "input" : 11,
+    "hiddenLayer" :  [
+        {
+            "size" : 256,
+            "activation" : "relu"
+        },
+        {
+            "size" : 256,
+            "activation" : "relu"
+        }
+    ],
+    "output" : 3
+}
+
 class TargetNetWorkAgent:
 
     def __init__(self):
@@ -24,8 +39,8 @@ class TargetNetWorkAgent:
         self.gamma =GAMMA
         self.soft_update = 0.1
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
-        self.model = Linear_QNet(11, 256, 3)
-        self.model_target = Linear_QNet(11, 256, 3)
+        self.model = QNet(MODEL_CONFIG)
+        self.model_target = QNet(MODEL_CONFIG)
         self.trainer = TargetNetworkQTrainer(self.model, self.model_target, LR, self.gamma, self.soft_update)
             
             
@@ -143,6 +158,7 @@ def train():
                 plot_mean_scores.append(mean_score)
                 plot(plot_scores, plot_mean_scores)
             update += 1
+            
         except Exception as e:
             print(e)
             break

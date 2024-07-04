@@ -3,21 +3,36 @@ import random
 import numpy as np
 from collections import deque
 from game import SnakeGameAI, Direction, Point
-from model import Linear_QNet, QTrainer
+from model import QNet, QTrainer
 from helper import plot
 
 MAX_MEMORY = 100000
 BATCH_SIZE = 1000
-LR = 0.001
 
+LR = 0.001
+EPSILON= 0
+
+GAMMA = 0.9
+
+
+MODEL_CONFIG = {
+    "input" : 11,
+    "hiddenLayer" :  [
+        {
+            "size" : 64,
+            "activation" : "relu"
+        },
+    ],
+    "output" : 3
+}
 class Agent:
 
     def __init__(self):
         self.n_games = 0
-        self.epsilon = 0 # randomness
-        self.gamma = 0.9 # discount rate
+        self.epsilon = EPSILON
+        self.gamma = GAMMA
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
-        self.model = Linear_QNet(11, 256, 3)
+        self.model = QNet(MODEL_CONFIG)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
 
