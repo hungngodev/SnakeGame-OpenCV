@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
+import numpy as np
 import os
 
 class QNet(nn.Module):
@@ -32,10 +33,13 @@ class QNet(nn.Module):
 
         file_name = os.path.join(model_folder_path, file_name)
         torch.save(self.state_dict(), file_name)
+        
+
 
 class TargetNetworkQTrainer:
-    def __init__(self, model, model_target, lr, gamma, sfu):
+    def __init__(self, model, model_target, lr, gamma, sfu, device):
         self.lr = lr
+        self.device = device
         self.gamma = gamma
         self.model = model
         self.model_target = model_target
@@ -49,10 +53,15 @@ class TargetNetworkQTrainer:
             target_param.data.copy_(tau * source_param.data + (1.0 - tau) * target_param.data)
             
     def train_step(self, state, action, reward, next_state, done):
-        state = torch.tensor(state, dtype=torch.float)
-        next_state = torch.tensor(next_state, dtype=torch.float)
-        action = torch.tensor(action, dtype=torch.long)
-        reward = torch.tensor(reward, dtype=torch.float)
+        state = np.array(state)
+        next_state = np.array(next_state)
+        action = np.array(action)
+        reward = np.array(reward)
+        
+        state = torch.tensor(state, dtype=torch.float).to(self.device)
+        next_state = torch.tensor(next_state, dtype=torch.float).to(self.device)
+        action = torch.tensor(action, dtype=torch.long).to(self.device)
+        reward = torch.tensor(reward, dtype=torch.float).to(self.device)
         # (n, x)
 
         if len(state.shape) == 1:
@@ -84,18 +93,19 @@ class TargetNetworkQTrainer:
 
 
 class QTrainer:
-    def __init__(self, model, lr, gamma):
+    def __init__(self, model, lr, gamma, device):
         self.lr = lr
         self.gamma = gamma
         self.model = model
+        self.device = device
         self.optimizer = optim.Adam(model.parameters(), lr=self.lr)
         self.criterion = nn.MSELoss()
 
     def train_step(self, state, action, reward, next_state, done):
-        state = torch.tensor(state, dtype=torch.float)
-        next_state = torch.tensor(next_state, dtype=torch.float)
-        action = torch.tensor(action, dtype=torch.long)
-        reward = torch.tensor(reward, dtype=torch.float)
+        state = torch.tensor(state, dtype=torch.float).to(self.device)
+        next_state = torch.tensor(next_state, dtype=torch.float).to(self.device)
+        action = torch.tensor(action, dtype=torch.long).to(self.device)
+        reward = torch.tensor(reward, dtype=torch.float).to(self.device)
         # (n, x)
 
         if len(state.shape) == 1:
