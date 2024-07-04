@@ -16,21 +16,17 @@ EPSILON = 0
 
 GAMMA = 0.9
 
-class Agent:
+class TargetNetWorkAgent:
 
-    def __init__(self, type):
+    def __init__(self):
         self.n_games = 0
         self.epsilon = EPSILON
         self.gamma =GAMMA
         self.soft_update = 0.1
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
-        self.type = type
-        if (type == '2NetWork'):
-            self.model = Linear_QNet(11, 256, 3)
-            self.model_target = Linear_QNet(11, 256, 3)
-            self.trainer = TargetNetworkQTrainer(self.model, self.model_target, LR, self.gamma, self.soft_update)
-        if (type == 'QLearning'):
-            self.model = Linear_QNet(11, 256, 3)
+        self.model = Linear_QNet(11, 256, 3)
+        self.model_target = Linear_QNet(11, 256, 3)
+        self.trainer = TargetNetworkQTrainer(self.model, self.model_target, LR, self.gamma, self.soft_update)
             
             
     def get_state(self, game):
@@ -112,7 +108,7 @@ def train():
     plot_mean_scores = []
     total_score = 0
     record = 0
-    agent = Agent('2NetWork')
+    agent = TargetNetWorkAgent()
     game = SnakeGameAI()
     update = 0
     while True:
