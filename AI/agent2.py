@@ -3,7 +3,7 @@ import random
 import numpy as np
 from collections import deque
 from game import SnakeGameAI, Direction, Point
-from model import Linear_QNet, QTrainer
+from model2 import Linear_QNet, TargetNetworkQTrainer
 from helper import plot
 
 MAX_MEMORY = 100000
@@ -18,16 +18,21 @@ GAMMA = 0.9
 
 class Agent:
 
-    def __init__(self):
+    def __init__(self, type):
         self.n_games = 0
         self.epsilon = EPSILON
         self.gamma =GAMMA
         self.soft_update = 0.1
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
-        self.model = Linear_QNet(11, 256, 3)
-        self.model_target = Linear_QNet(11, 256, 3)
-        self.trainer = QTrainer(self.model, self.model_target, LR, self.gamma, self.soft_update)
-
+        self.type = type
+        if (type == '2NetWork'):
+            self.model = Linear_QNet(11, 256, 3)
+            self.model_target = Linear_QNet(11, 256, 3)
+            self.trainer = TargetNetworkQTrainer(self.model, self.model_target, LR, self.gamma, self.soft_update)
+        if (type == 'QLearning'):
+            self.model = Linear_QNet(11, 256, 3)
+            
+            
     def get_state(self, game):
         head = game.snake[0]
         point_l = Point(head.x - 20, head.y)
@@ -107,7 +112,7 @@ def train():
     plot_mean_scores = []
     total_score = 0
     record = 0
-    agent = Agent()
+    agent = Agent('2NetWork')
     game = SnakeGameAI()
     update = 0
     while True:
