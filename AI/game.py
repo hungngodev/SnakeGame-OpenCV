@@ -30,7 +30,7 @@ WIDTH = 20
 
 EAT_APPLE = 10
 DEAD = -10
-WALK = -0.1
+WALK = 0
 
 class SnakeGameAI:
 
