@@ -11,10 +11,6 @@ MAX_MEMORY = 100000
 BATCH_SIZE = 1000
 
 LR = 0.001
-EPSILON= 0
-
-GAMMA = 0.9
-
 
 MODEL_CONFIG = {
     "input" : 11,
