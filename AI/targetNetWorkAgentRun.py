@@ -1,8 +1,9 @@
 import pygame
 import numpy as np
-from agent import TargetNetWorkAgent, MODEL_CONFIG2
+from agent import TargetNetWorkAgent
 from game import SnakeGameAI
 from helper import plot
+import wandb
 
 MODEL_CONFIG2 = {
     "input" : 32,
@@ -22,6 +23,11 @@ MODEL_CONFIG2 = {
     "soft_update": 0.001,
     "gamma" : 0.9,
 }
+
+wandb.init(
+    project="Snake-TargetNetwork",
+    config=MODEL_CONFIG2
+)
 
 def train():
     plot_scores = []
@@ -64,6 +70,7 @@ def train():
                 
                 plot_scores.append(score)
                 plot_mean_scores.append(mean_score)
+                wandb.log({"score": score, "mean_score": mean_score})
             update += 1
             
         except Exception as e:
@@ -76,5 +83,3 @@ def train():
 
 if __name__ == '__main__':
     train()
-    plot(np.load('plot_scores_TargetNetwork.npy'), np.load('plot_mean_scores_TargetNetwork.npy'))
- 
