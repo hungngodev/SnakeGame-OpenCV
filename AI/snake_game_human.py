@@ -23,7 +23,7 @@ BLUE2 = (0, 100, 255)
 BLACK = (0,0,0)
 
 BLOCK_SIZE = 20
-SPEED = 20
+SPEED = 1
 
 class SnakeGame:
     
@@ -69,7 +69,6 @@ class SnakeGame:
                     self.direction = Direction.UP
                 elif event.key == pygame.K_DOWN:
                     self.direction = Direction.DOWN
-        
         # 2. move
         self._move(self.direction) # update the head
         self.snake.insert(0, self.head)
@@ -96,9 +95,11 @@ class SnakeGame:
     def _is_collision(self):
         # hits boundary
         if self.head.x > self.w - BLOCK_SIZE or self.head.x < 0 or self.head.y > self.h - BLOCK_SIZE or self.head.y < 0:
+            print('boundary')
             return True
         # hits itself
         if self.head in self.snake[1:]:
+            print('self')
             return True
         
         return False
@@ -133,11 +134,12 @@ class SnakeGame:
 
 if __name__ == '__main__':
     game = SnakeGame()
-    
+
+
     # game loop
     while True:
         game_over, score = game.play_step()
-        
+            
         if game_over == True:
             break
         

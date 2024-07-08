@@ -13,7 +13,7 @@ BATCH_SIZE = 1000
 LR = 0.001
 
 MODEL_CONFIG = {
-    "input" : 11,
+    "input" : 32,
     "hiddenLayer" :  [
         {
             "size" : 64,

@@ -5,6 +5,8 @@ import torch.nn.functional as F
 import numpy as np
 import os
 
+
+nn.Linear(16, 30)
 class QNet(nn.Module):
     def __init__(self, MODEL_CONFIG):
         super().__init__()
