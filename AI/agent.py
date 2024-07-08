@@ -1,19 +1,14 @@
 import random
 from collections import deque
-
+from model import QNet, QTrainer, TargetNetworkQTrainer
 import numpy as np
 import torch
 
 from game import Direction, Point
 
 MAX_MEMORY = 100000
-
 EPSILON = 0
-
 GAMMA = 0.9
-
-
-
 
 class Agent:
 
@@ -188,3 +183,55 @@ class Agent1:
             prediction = self.model(state0)
             move = torch.argmax(prediction).item()
             final_move[move] = 1
+
+
+class QLearningAgent(Agent):
+
+    def __init__(self, MODEL_CONFIG):
+        super().__init__()
+        self.model = QNet(MODEL_CONFIG).to(self.device)
+        self.trainer = QTrainer(self.model, lr=MODEL_CONFIG['learning_rate'], gamma = MODEL_CONFIG['gamma'], device=self.device)
+        self.batch_size = MODEL_CONFIG['batch_size']
+        self.max_memory = MODEL_CONFIG['max_memory']
+        
+    def train_long_memory(self):
+        if len(self.memory) > self.batch_size:
+            mini_sample = random.sample(self.memory, self.batch_size) # list of tuples
+        else:
+            mini_sample = self.memory
+
+        states, actions, rewards, next_states, dones = zip(*mini_sample)
+        self.trainer.train_step(states, actions, rewards, next_states, dones)
+        
+
+    def train_short_memory(self, state, action, reward, next_state, done):
+        self.trainer.train_step(state, action, reward, next_state, done)
+        
+        
+
+class TargetNetWorkAgent(Agent):
+
+    def __init__(self, MODEL_CONFIG):
+        super().__init__()
+        
+        self.model = QNet(MODEL_CONFIG).to(self.device)
+        self.model_target = QNet(MODEL_CONFIG).to(self.device)
+        self.trainer = TargetNetworkQTrainer(
+            self.model, 
+            self.model_target, 
+            MODEL_CONFIG['learning_rate'],
+            MODEL_CONFIG['gamma'],
+            MODEL_CONFIG['soft_update'],
+            self.device
+            )
+        self.batch_size = MODEL_CONFIG['batch_size']
+        
+            
+    def update_descent(self):
+        if len(self.memory) > self.batch_size:
+            mini_sample = random.sample(self.memory, self.batch_size) # list of tuples
+        else:
+            mini_sample = self.memory
+
+        states, actions, rewards, next_states, dones = zip(*mini_sample)
+        self.trainer.train_step(states, actions, rewards, next_states, dones)

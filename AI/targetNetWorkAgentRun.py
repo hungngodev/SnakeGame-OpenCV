@@ -1,23 +1,10 @@
-import torch
-import random
-import numpy as np
-from collections import deque
-from game import SnakeGameAI, Direction, Point
-from model import  TargetNetworkQTrainer, QNet
-from helper import plot
-from agent import Agent
-import cv2
 import pygame
+import numpy as np
+from agent import TargetNetWorkAgent, MODEL_CONFIG2
+from game import SnakeGameAI
+from helper import plot
 
-BATCH_SIZE = 1000
-
-LR = 0.001
-NUM_UPDATES = 20
-SOFT_UPDATE = 0.001
-EPSILON = 0
-
-
-MODEL_CONFIG = {
+MODEL_CONFIG2 = {
     "input" : 32,
     "hiddenLayer" :  [
         {
@@ -29,42 +16,19 @@ MODEL_CONFIG = {
             "activation" : "relu"
         }
     ],
-    "output" : 3
+    "output" : 3,
+    "batch_size" : 1000,
+    "learning_rate" : 0.001,
+    "soft_update": 0.001,
+    "gamma" : 0.9,
 }
-
-class TargetNetWorkAgent(Agent):
-
-    def __init__(self):
-        super().__init__()
-        
-        self.soft_update = SOFT_UPDATE
-        self.model = QNet(MODEL_CONFIG).to(self.device)
-        self.model_target = QNet(MODEL_CONFIG).to(self.device)
-        self.trainer = TargetNetworkQTrainer(
-            self.model, 
-            self.model_target, 
-            LR, 
-            self.gamma, 
-            self.soft_update,
-            self.device
-            )
-            
-    def update_descent(self):
-        if len(self.memory) > BATCH_SIZE:
-            mini_sample = random.sample(self.memory, BATCH_SIZE) # list of tuples
-        else:
-            mini_sample = self.memory
-
-        states, actions, rewards, next_states, dones = zip(*mini_sample)
-        self.trainer.train_step(states, actions, rewards, next_states, dones)
-
 
 def train():
     plot_scores = []
     plot_mean_scores = []
     total_score = 0
     record = 0
-    agent = TargetNetWorkAgent()
+    agent = TargetNetWorkAgent(MODEL_CONFIG=MODEL_CONFIG2)
     game = SnakeGameAI()
     pygame.display.set_caption('SnakeTargetNetwork')
     update = 0
@@ -83,7 +47,7 @@ def train():
             state_new = agent.get_state(game)
 
             agent.remember(state_old, final_move, reward, state_new, done)
-            if update % NUM_UPDATES == 0 and len(agent.memory) > BATCH_SIZE:
+            if update % MODEL_CONFIG2['num_updates'] == 0 and len(agent.memory) > MODEL_CONFIG2['batch_size']:
                 agent.update_descent()
                 
             if done:
