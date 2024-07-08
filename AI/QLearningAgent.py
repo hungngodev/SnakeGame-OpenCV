@@ -6,6 +6,8 @@ from game import SnakeGameAI, Direction, Point
 from model import QNet, QTrainer
 from helper import plot
 from agent import Agent
+import cv2
+import pygame
 
 MAX_MEMORY = 100000
 BATCH_SIZE = 1000
@@ -50,7 +52,13 @@ def train():
     record = 0
     agent = QLearningAgent()
     game = SnakeGameAI()
-    while agent.n_games < 1500:
+    pygame.display.set_caption('QLearning')
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    break
         # get old state
         try:
             state_old = agent.get_state(game)
@@ -88,7 +96,8 @@ def train():
         except Exception as e:
             print(e)
             break
-    plot(plot_scores, plot_mean_scores)
-
+    np.save('plot_scores_QLearning.npy', plot_scores)
+    np.save('plot_mean_scores_QLearning.npy', plot_mean_scores)
 if __name__ == '__main__':
     train()
+    plot(np.load('plot_scores_TargetNetwork.npy'), np.load('plot_mean_scores_TargetNetwork.npy'))
