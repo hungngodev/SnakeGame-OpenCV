@@ -3,6 +3,8 @@ from game import SnakeGameAI
 import pygame
 import numpy as np
 from helper import plot
+import wandb
+
 
 
 MODEL_CONFIG = {
@@ -19,6 +21,11 @@ MODEL_CONFIG = {
     "gamma" : 0.9,
     "num_updates": 20,
 }
+
+wandb.init(
+    project="Snake-QLearning",
+    config=MODEL_CONFIG
+)
 
 def train():
     plot_scores = []
@@ -64,15 +71,19 @@ def train():
 
                 print('Game', agent.n_games, 'Score', score, 'Record:', record)
 
-                plot_scores.append(score)
                 total_score += score
                 mean_score = total_score / agent.n_games
+                
+                plot_scores.append(score)
                 plot_mean_scores.append(mean_score)
+                wandb.log({"score": score, "mean_score": mean_score})
+                
         except Exception as e:
             print(e)
             break
-    np.save('plot_scores_QLearning.npy', plot_scores)
-    np.save('plot_mean_scores_QLearning.npy', plot_mean_scores)
+        
+    np.save('./plotlib/plot_scores_QLearning.npy', plot_scores)
+    np.save('./plotlib/plot_mean_scores_QLearning.npy', plot_mean_scores)
+    
 if __name__ == '__main__':
     train()
-    plot(np.load('plot_scores_TargetNetwork.npy'), np.load('plot_mean_scores_TargetNetwork.npy'))

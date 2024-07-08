@@ -20,8 +20,9 @@ MODEL_CONFIG2 = {
     "output" : 3,
     "batch_size" : 1000,
     "learning_rate" : 0.001,
-    "soft_update": 0.001,
     "gamma" : 0.9,
+    "soft_update": 0.001,
+    "num_updates": 20,
 }
 
 wandb.init(
@@ -78,8 +79,9 @@ def train():
             break
     
 
-    np.save('plot_scores_TargetNetwork.npy', plot_scores)
-    np.save('plot_mean_scores_TargetNetwork.npy', plot_mean_scores)
+    np.save('./plotlib/plot_scores_TargetNetwork.npy', plot_scores)
+    np.save('./plotlib/plot_mean_scores_TargetNetwork.npy', plot_mean_scores)
+    # wandb.finish()
 
 if __name__ == '__main__':
     train()
