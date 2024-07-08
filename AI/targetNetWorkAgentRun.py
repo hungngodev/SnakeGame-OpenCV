@@ -13,9 +13,9 @@ MODEL_CONFIG2 = {
             "activation" : "relu"
         },
         {
-            "size" : 256,
+            "size" : 128,
             "activation" : "relu"
-        }
+        },
     ],
     "output" : 3,
     "batch_size" : 1000,
