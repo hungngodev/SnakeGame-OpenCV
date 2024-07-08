@@ -25,7 +25,7 @@ class QNet(nn.Module):
         for idx in range(len(self.hiddenLayer)):
             # activation = getattr(self, f'activation{idx}')(x)
             x= F.relu(getattr(self, f'hidden{idx}')(x))
-        x = F.softmax( getattr(self, f'output')(x))
+        x =  getattr(self, f'output')(x)
         return x
 
     def save(self, file_name='model.pth'):
@@ -104,6 +104,11 @@ class QTrainer:
         self.criterion = nn.MSELoss()
 
     def train_step(self, state, action, reward, next_state, done):
+        state = np.array(state)
+        next_state = np.array(next_state)
+        action = np.array(action)
+        reward = np.array(reward)
+        
         state = torch.tensor(state, dtype=torch.float).to(self.device)
         next_state = torch.tensor(next_state, dtype=torch.float).to(self.device)
         action = torch.tensor(action, dtype=torch.long).to(self.device)
