@@ -25,7 +25,7 @@ class QNet(nn.Module):
         for idx in range(len(self.hiddenLayer)):
             # activation = getattr(self, f'activation{idx}')(x)
             x= F.relu(getattr(self, f'hidden{idx}')(x))
-        x = getattr(self, f'output')(x)
+        x = F.softmax( getattr(self, f'output')(x))
         return x
 
     def save(self, file_name='model.pth'):
