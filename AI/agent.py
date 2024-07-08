@@ -6,14 +6,9 @@ import torch
 
 from game import Direction, Point
 
-MAX_MEMORY = 100000
-
+MAX_MEMORY = 1000000
 EPSILON = 0
-
-GAMMA = 0.9
-
-
-
+GAMMA = 0.85
 
 class Agent:
 

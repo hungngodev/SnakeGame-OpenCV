@@ -9,7 +9,7 @@ from agent import Agent
 import cv2
 import pygame
 
-BATCH_SIZE = 1000
+BATCH_SIZE = 2000
 
 LR = 0.001
 NUM_UPDATES = 20
@@ -25,9 +25,9 @@ MODEL_CONFIG = {
             "activation" : "relu"
         },
         {
-            "size" : 256,
+            "size" : 128,
             "activation" : "relu"
-        }
+        },
     ],
     "output" : 3
 }
