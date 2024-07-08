@@ -16,7 +16,7 @@ EPSILON = 0
 
 
 MODEL_CONFIG = {
-    "input" : 11,
+    "input" : 32,
     "hiddenLayer" :  [
         {
             "size" : 256,
