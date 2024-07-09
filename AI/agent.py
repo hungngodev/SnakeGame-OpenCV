@@ -213,9 +213,19 @@ class TargetNetWorkAgent(Agent):
 
     def __init__(self, MODEL_CONFIG):
         super().__init__()
+        model  = QNet(MODEL_CONFIG).to(self.device)
+        model.load_state_dict(torch.load('./model/trainingTargetNetwork.pth'))
+        model.eval()
+        for param in model.parameters():
+            print(param)
         
-        self.model = QNet(MODEL_CONFIG).to(self.device)
-        self.model_target = QNet(MODEL_CONFIG).to(self.device)
+            
+        self.model = model
+        model_target = QNet(MODEL_CONFIG).to(self.device)
+        model_target.load_state_dict(torch.load('./model/trainingTargetNetwork.pth'))
+        model_target.eval()
+        self.model_target = model_target
+        
         self.trainer = TargetNetworkQTrainer(
             self.model, 
             self.model_target, 

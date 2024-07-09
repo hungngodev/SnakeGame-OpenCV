@@ -32,22 +32,21 @@ class QNet(nn.Module):
 
 class TargetNetworkQTrainer:
     def __init__(self, model, model_target, lr, gamma, sfu, device):
-        checkpoint  = torch.load('./model/training target model.pth')
+ 
         self.lr = lr
         self.device = device
         self.gamma = gamma
+        
+        
         self.model = model
-        self.model.load_state_dict(checkpoint['model'])
         self.model_target = model_target
-        self.model_target.load_state_dict(checkpoint['model_target'])
+
         self.optimizer = optim.Adam(model.parameters(), lr=self.lr)
-        self.optimizer.load_state_dict(checkpoint['optimizer'])
         self.optimizer_target = optim.Adam(model_target.parameters(), lr=self.lr)
+        
         self.criterion = nn.MSELoss()
         self.tau = sfu
-        self.model.eval()
-        self.model_target.eval()
-    
+
 
     def soft_update(self, source_model, target_model, tau):
         for target_param, source_param in zip(target_model.parameters(), source_model.parameters()):
