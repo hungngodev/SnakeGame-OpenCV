@@ -28,7 +28,7 @@ SPEED = 100000
 LENGTH = 20
 WIDTH = 20
 
-EAT_APPLE = 10
+EAT_APPLE = 100
 DEAD = -1000
 WALK = -0.1
 
@@ -83,7 +83,7 @@ class SnakeGameAI:
         game_over = False
         if self.is_collision() or self.frame_iteration > 100*len(self.snake):
             game_over = True
-            reward = DEAD/len(self.snake)
+            reward = DEAD* (1 - len(self.snake)/(self.w* self.h))
             return reward, game_over, self.score
 
         # 4. place new food or just move
@@ -95,8 +95,8 @@ class SnakeGameAI:
             self.snake.pop()
         
 
-        # self._update_ui()
-        # self.clock.tick(SPEED)
+        self._update_ui()
+        self.clock.tick(SPEED)
  
         return reward, game_over, self.score
 

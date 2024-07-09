@@ -52,6 +52,7 @@ class Agent:
             [0,0,0]
         ]
         j=0
+        foundApple = False
         for dir in directions:
             i= head
             while i.x < game.w and i.x > 0 and i.y < game.h and i.y > 0:
@@ -63,9 +64,28 @@ class Agent:
                         dangerIn8Dir[j][1] = 1
                     else:
                         dangerIn8Dir[j][2] = 1
+                        foundApple= True
                     break
             j+=1
-            
+
+        if not foundApple:
+            if game.food.x < game.head.x and game.food.y < game.head.y:
+                dangerIn8Dir[0][2] = 1
+            elif game.food.x == game.head.x and game.food.y < game.head.y:
+                dangerIn8Dir[1][2] = 1
+            elif game.food.x > game.head.x and game.food.y < game.head.y:
+                dangerIn8Dir[2][2] = 1
+            elif game.food.x > game.head.x and game.food.y == game.head.y:
+                dangerIn8Dir[3][2] = 1
+            elif game.food.x > game.head.x and game.food.y > game.head.y:
+                dangerIn8Dir[4][2] = 1
+            elif game.food.x == game.head.x and game.food.y > game.head.y:
+                dangerIn8Dir[5][2] = 1
+            elif game.food.x < game.head.x and game.food.y > game.head.y:
+                dangerIn8Dir[6][2] = 1
+            elif game.food.x < game.head.x and game.food.y == game.head.y:
+                dangerIn8Dir[7][2] = 1
+        
         dir_l = int(game.direction == Direction.LEFT)
         dir_r = int(game.direction == Direction.RIGHT)
         dir_u = int(game.direction == Direction.UP)
@@ -213,19 +233,9 @@ class TargetNetWorkAgent(Agent):
 
     def __init__(self, MODEL_CONFIG):
         super().__init__()
-        model  = QNet(MODEL_CONFIG).to(self.device)
-        model.load_state_dict(torch.load('./model/trainingTargetNetwork.pth'))
-        model.eval()
-        for param in model.parameters():
-            print(param)
         
-            
-        self.model = model
-        model_target = QNet(MODEL_CONFIG).to(self.device)
-        model_target.load_state_dict(torch.load('./model/trainingTargetNetwork.pth'))
-        model_target.eval()
-        self.model_target = model_target
-        
+        self.model = QNet(MODEL_CONFIG).to(self.device)
+        self.model_target = QNet(MODEL_CONFIG).to(self.device)
         self.trainer = TargetNetworkQTrainer(
             self.model, 
             self.model_target, 
