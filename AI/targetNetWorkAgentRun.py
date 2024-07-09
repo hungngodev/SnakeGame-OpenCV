@@ -63,7 +63,7 @@ def train():
 
                 if score > record:
                     record = score
-                    agent.model.save()
+                    agent.trainer.save()
 
                 print('Game', agent.n_games, 'Score', score, 'Record:', record)
                 total_score += score
@@ -79,8 +79,8 @@ def train():
             break
     
 
-    np.save('./plotlib/plot_scores_TargetNetwork.npy', plot_scores)
-    np.save('./plotlib/plot_mean_scores_TargetNetwork.npy', plot_mean_scores)
+    np.save('./plotlib/plot_scores_TargetNetwork_New.npy', plot_scores)
+    np.save('./plotlib/plot_mean_scores_TargetNetwork_New.npy', plot_mean_scores)
     # wandb.finish()
 
 if __name__ == '__main__':

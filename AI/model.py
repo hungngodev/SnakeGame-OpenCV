@@ -27,28 +27,27 @@ class QNet(nn.Module):
             x= F.relu(getattr(self, f'hidden{idx}')(x))
         x =  getattr(self, f'output')(x)
         return x
-
-    def save(self, file_name='model.pth'):
-        model_folder_path = './model'
-        if not os.path.exists(model_folder_path):
-            os.makedirs(model_folder_path)
-
-        file_name = os.path.join(model_folder_path, file_name)
-        torch.save(self.state_dict(), file_name)
-        
+    
 
 
 class TargetNetworkQTrainer:
     def __init__(self, model, model_target, lr, gamma, sfu, device):
+        checkpoint  = torch.load('./model/training target model.pth')
         self.lr = lr
         self.device = device
         self.gamma = gamma
         self.model = model
+        self.model.load_state_dict(checkpoint['model'])
         self.model_target = model_target
+        self.model_target.load_state_dict(checkpoint['model_target'])
         self.optimizer = optim.Adam(model.parameters(), lr=self.lr)
+        self.optimizer.load_state_dict(checkpoint['optimizer'])
         self.optimizer_target = optim.Adam(model_target.parameters(), lr=self.lr)
         self.criterion = nn.MSELoss()
         self.tau = sfu
+        self.model.eval()
+        self.model_target.eval()
+    
 
     def soft_update(self, source_model, target_model, tau):
         for target_param, source_param in zip(target_model.parameters(), source_model.parameters()):
@@ -92,6 +91,20 @@ class TargetNetworkQTrainer:
         self.optimizer.step()
 
         self.soft_update(self.model, self.model_target, self.tau)
+    
+    def save(self, file_name='training target model.pth'):
+        model_folder_path = './model'
+        if not os.path.exists(model_folder_path):
+            os.makedirs(model_folder_path)
+
+        file_name = os.path.join(model_folder_path, file_name)
+        torch.save({
+            'model': self.model.state_dict(),
+            'model_target': self.model_target.state_dict(),
+            'optimizer': self.optimizer.state_dict(),
+            'optimizer_target': self.optimizer_target.state_dict(),
+            'criterion': self.criterion.state_dict(),
+            }, file_name)
 
 
 class QTrainer:
