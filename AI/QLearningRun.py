@@ -1,18 +1,11 @@
-import torch
-import random
-import numpy as np
-from collections import deque
-from game import SnakeGameAI, Direction, Point
-from model import QNet, QTrainer
-from helper import plot
-from agent import Agent
-import cv2
+from agent import QLearningAgent
+from game import SnakeGameAI
 import pygame
+import numpy as np
+from helper import plot
+import wandb
 
-MAX_MEMORY = 100000
-BATCH_SIZE = 1000
 
-LR = 0.001
 
 MODEL_CONFIG = {
     "input" : 32,
@@ -22,35 +15,24 @@ MODEL_CONFIG = {
             "activation" : "relu"
         },
     ],
-    "output" : 3
+    "output" : 3,
+    "batch_size" : 1000,
+    "learning_rate" : 0.001,   
+    "gamma" : 0.9,
+    "num_updates": 20,
 }
-class QLearningAgent(Agent):
 
-    def __init__(self):
-        super().__init__()
-        self.model = QNet(MODEL_CONFIG).to(self.device)
-        self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma, device=self.device)
-        
-    def train_long_memory(self):
-        if len(self.memory) > BATCH_SIZE:
-            mini_sample = random.sample(self.memory, BATCH_SIZE) # list of tuples
-        else:
-            mini_sample = self.memory
-
-        states, actions, rewards, next_states, dones = zip(*mini_sample)
-        self.trainer.train_step(states, actions, rewards, next_states, dones)
-        
-
-    def train_short_memory(self, state, action, reward, next_state, done):
-        self.trainer.train_step(state, action, reward, next_state, done)
-
+wandb.init(
+    project="Snake-QLearning",
+    config=MODEL_CONFIG
+)
 
 def train():
     plot_scores = []
     plot_mean_scores = []
     total_score = 0
     record = 0
-    agent = QLearningAgent()
+    agent = QLearningAgent(MODEL_CONFIG=MODEL_CONFIG)
     game = SnakeGameAI()
     pygame.display.set_caption('QLearning')
     while True:
@@ -89,15 +71,19 @@ def train():
 
                 print('Game', agent.n_games, 'Score', score, 'Record:', record)
 
-                plot_scores.append(score)
                 total_score += score
                 mean_score = total_score / agent.n_games
+                
+                plot_scores.append(score)
                 plot_mean_scores.append(mean_score)
+                wandb.log({"score": score, "mean_score": mean_score})
+                
         except Exception as e:
             print(e)
             break
-    np.save('plot_scores_QLearning.npy', plot_scores)
-    np.save('plot_mean_scores_QLearning.npy', plot_mean_scores)
+        
+    np.save('./plotlib/plot_scores_QLearning.npy', plot_scores)
+    np.save('./plotlib/plot_mean_scores_QLearning.npy', plot_mean_scores)
+    
 if __name__ == '__main__':
     train()
-    plot(np.load('plot_scores_TargetNetwork.npy'), np.load('plot_mean_scores_TargetNetwork.npy'))
