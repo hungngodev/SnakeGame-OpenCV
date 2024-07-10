@@ -2,10 +2,10 @@ import pygame
 import random
 from enum import Enum
 from collections import namedtuple
+import numpy as np
 
 pygame.init()
-font = pygame.font.Font('arial.ttf', 25)
-#font = pygame.font.SysFont('arial', 25)
+font = pygame.font.SysFont('arial', 25)
 
 class Direction(Enum):
     RIGHT = 1
@@ -134,12 +134,101 @@ class SnakeGame:
 
 if __name__ == '__main__':
     game = SnakeGame()
+    def get_state( game):
+        head = game.snake[0]
+
+        def findNewPoint(direction, i ):
+            if direction == 'up left':
+                return Point(i.x - 20, i.y - 20)
+            elif direction =='up':
+                return Point(i.x, i.y - 20)
+            elif direction == 'up right':
+                return Point(i.x + 20, i.y - 20)
+            elif direction == 'right':
+                return Point(i.x + 20, i.y)
+            elif direction == 'down right':
+                return Point(i.x + 20, i.y + 20)
+            elif direction == 'down':
+                return Point(i.x, i.y + 20)
+            elif direction == 'down left':
+                return Point(i.x - 20, i.y + 20)
+            elif direction == 'left':
+                return Point(i.x - 20, i.y)
+        directions = ['up left', 'up', 'up right', 'right', 'down right', 'down', 'down left', 'left']
+        dangerIn8Dir = [
+            [0,0,0],
+            [0,0,0],
+            [0,0,0],
+            [0,0,0],
+            [0,0,0],
+            [0,0,0],
+            [0,0,0],
+            [0,0,0]
+        ]
+        j=0
+        foundApple = False
+        for dir in directions:
+            i= head
+            while i.x < game.w and i.x > 0 and i.y < game.h and i.y > 0:
+                i = findNewPoint(dir, i)
+                if (abs(i.x - head.x) > 20 or abs(i.y - head.y) > 20):
+                        dangerIn8Dir[j][0] = 1
+                if i in game.snake[1:] or (i.x == game.food.x and i.y == game.food.y):
+                    if i in game.snake[1:]:
+                        dangerIn8Dir[j][1] = 1
+                    else:
+                        dangerIn8Dir[j][2] = 1
+                        foundApple= True
+                    break
+            j+=1
+
+        if not foundApple:
+            if game.food.x < game.head.x and game.food.y < game.head.y:
+                dangerIn8Dir[0][2] = 1
+            elif game.food.x == game.head.x and game.food.y < game.head.y:
+                dangerIn8Dir[1][2] = 1
+            elif game.food.x > game.head.x and game.food.y < game.head.y:
+                dangerIn8Dir[2][2] = 1
+            elif game.food.x > game.head.x and game.food.y == game.head.y:
+                dangerIn8Dir[3][2] = 1
+            elif game.food.x > game.head.x and game.food.y > game.head.y:
+                dangerIn8Dir[4][2] = 1
+            elif game.food.x == game.head.x and game.food.y > game.head.y:
+                dangerIn8Dir[5][2] = 1
+            elif game.food.x < game.head.x and game.food.y > game.head.y:
+                dangerIn8Dir[6][2] = 1
+            elif game.food.x < game.head.x and game.food.y == game.head.y:
+                dangerIn8Dir[7][2] = 1
+        
+        dir_l = int(game.direction == Direction.LEFT)
+        dir_r = int(game.direction == Direction.RIGHT)
+        dir_u = int(game.direction == Direction.UP)
+        dir_d = int(game.direction == Direction.DOWN)
+
+        tail_l = int(game.snake[-1].x > game.snake[-2].x)
+        tail_r = int(game.snake[-1].x < game.snake[-2].x)
+        tail_up = int(game.snake[-1].y > game.snake[-2].y)
+        tail_down = int(game.snake[-1].y < game.snake[-2].y)
+
+        # dangerIn8Dir = [item for sublist in dangerIn8Dir for item in sublist]
+        dangerIn8Dir = [item for sublist in dangerIn8Dir for item in sublist]
+        state = dangerIn8Dir +  [
+            dir_l,
+            dir_r,
+            dir_u,
+            dir_d,
+            tail_l,
+            tail_r,
+            tail_up,
+            tail_down
+        ]
+        return np.array(state, dtype=int)
 
 
     # game loop
     while True:
         game_over, score = game.play_step()
-            
+        print(get_state(game))
         if game_over == True:
             break
         
