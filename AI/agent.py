@@ -7,15 +7,18 @@ import torch
 from game import Direction, Point
 
 MAX_MEMORY = 100000
-EPSILON = 0
 GAMMA = 0.9
+MIN_EPSILON = 0.05
+INIT_EPSILON = 1  
+GAMES_EPSILON = 500    
 
 class Agent:
 
     def __init__(self):
         self.n_games = 0
-        self.epsilon = EPSILON
+        self.epsilon = INIT_EPSILON
         self.gamma =GAMMA
+        print(torch.cuda.is_available())
         self.device= torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
             
@@ -112,14 +115,14 @@ class Agent:
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done)) # popleft if MAX_MEMORY is reached
-
-
-
     def get_action(self, state):
         # random moves: tradeoff exploration / exploitation
-        self.epsilon = 80 - self.n_games
+        coefficient = max((GAMES_EPSILON- self.n_games)/GAMES_EPSILON, 0)
+        self.epsilon = (INIT_EPSILON - MIN_EPSILON) * coefficient + MIN_EPSILON
+        choice = np.random.choice([0,1] , p=[1-self.epsilon, self.epsilon])
+        
         final_move = [0,0,0]
-        if random.randint(0, 200) < self.epsilon:
+        if choice:
             move = random.randint(0, 2)
             final_move[move] = 1
         else:
@@ -135,7 +138,7 @@ class Agent1:
 
     def __init__(self):
         self.n_games = 0
-        self.epsilon = EPSILON
+        self.epsilon = INIT_EPSILON
         self.gamma =GAMMA
         self.device= torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
@@ -204,7 +207,6 @@ class Agent1:
             move = torch.argmax(prediction).item()
             final_move[move] = 1
 
-
 class QLearningAgent(Agent):
 
     def __init__(self, MODEL_CONFIG):
@@ -227,8 +229,6 @@ class QLearningAgent(Agent):
     def train_short_memory(self, state, action, reward, next_state, done):
         self.trainer.train_step(state, action, reward, next_state, done)
         
-        
-
 class TargetNetWorkAgent(Agent):
 
     def __init__(self, MODEL_CONFIG):
@@ -245,7 +245,9 @@ class TargetNetWorkAgent(Agent):
             self.device
             )
         self.batch_size = MODEL_CONFIG['batch_size']
-        
+    
+    def update_target(self):
+        self.trainer.update_target()
             
     def update_descent(self):
         if len(self.memory) > self.batch_size:
