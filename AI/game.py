@@ -28,8 +28,8 @@ SPEED = 100000
 LENGTH = 20
 WIDTH = 20
 
-EAT_APPLE = 100
-DEAD = -1000
+EAT_APPLE = 10
+DEAD = -100
 WALK = -0.1
 
 class SnakeGameAI:
@@ -79,7 +79,8 @@ class SnakeGameAI:
         self.snake.insert(0, self.head)
         
         # 3. check if game over
-        reward = WALK
+        distanceToApple = np.sqrt((self.head.x - self.food.x)**2 + (self.head.y - self.food.y)**2)
+        reward = (1/max(1, distanceToApple))*0.1  - WALK
         game_over = False
         if self.is_collision() or self.frame_iteration > 100*len(self.snake):
             game_over = True

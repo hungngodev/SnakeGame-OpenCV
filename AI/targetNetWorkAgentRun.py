@@ -19,10 +19,10 @@ MODEL_CONFIG2 = {
     ],
     "output" : 3,
     "batch_size" : 1000,
-    "learning_rate" : 0.001,
+    "learning_rate" : 0.0001,
     "gamma" : 0.9,
     "soft_update": 0.001,
-    "num_updates": 20,
+    "num_updates": 100,
 }
 
 wandb.init(
@@ -54,9 +54,10 @@ def train():
             state_new = agent.get_state(game)
 
             agent.remember(state_old, final_move, reward, state_new, done)
-            if update % MODEL_CONFIG2['num_updates'] == 0 and len(agent.memory) > MODEL_CONFIG2['batch_size']:
+            if len(agent.memory) > MODEL_CONFIG2['batch_size']:
                 agent.update_descent()
-                
+            if  update % MODEL_CONFIG2['num_updates'] == 0:
+                agent.update_target()
             if done:
                 game.reset()
                 agent.n_games += 1

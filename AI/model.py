@@ -5,8 +5,6 @@ import torch.nn.functional as F
 import numpy as np
 import os
 
-
-nn.Linear(16, 30)
 class QNet(nn.Module):
     def __init__(self, MODEL_CONFIG):
         super().__init__()
@@ -40,19 +38,12 @@ class TargetNetworkQTrainer:
         self.model.load_state_dict(checkpoint['model'])
         self.model_target = model_target
         self.model_target.load_state_dict(checkpoint['model_target'])
-        for param in self.model_target.parameters():
-            print(param)
         self.optimizer = optim.Adam(model.parameters(), lr=self.lr)
         self.optimizer.load_state_dict(checkpoint['optimizer'])
         self.criterion = nn.MSELoss()
         self.tau = sfu
         self.model.train()
         self.model_target.train()
-    
-
-    def soft_update(self, source_model, target_model, tau):
-        for target_param, source_param in zip(target_model.parameters(), source_model.parameters()):
-            target_param.data.copy_(tau * source_param.data + (1.0 - tau) * target_param.data)
             
     def train_step(self, state, action, reward, next_state, done):
         state = np.array(state)
@@ -90,10 +81,15 @@ class TargetNetworkQTrainer:
         
         #update weights of Q network 
         self.optimizer.step()
-
-        self.soft_update(self.model, self.model_target, self.tau)
+        # with torch.no_grad():
+        #     for target_param, source_param in zip(self.model_target.parameters(), self.model.parameters()):
+        #         target_param.copy_(self.tau * source_param.data + (1.0 - self.tau) * target_param.data)
     
-    def save(self, file_name='training target modelm 3.pth'):
+    def update_target(self):
+        print('update target')
+        self.model_target.load_state_dict(self.model.state_dict())
+    
+    def save(self, file_name='training target modelm 4.pth'):
         model_folder_path = './model'
         if not os.path.exists(model_folder_path):
             os.makedirs(model_folder_path)
@@ -109,12 +105,18 @@ class TargetNetworkQTrainer:
 
 class QTrainer:
     def __init__(self, model, lr, gamma, device):
+        checkpoint  = torch.load('./model/training target model.pth')
         self.lr = lr
         self.gamma = gamma
         self.model = model
         self.device = device
         self.optimizer = optim.Adam(model.parameters(), lr=self.lr)
         self.criterion = nn.MSELoss()
+        
+        # self.model.load_state_dict(checkpoint['model'])
+        # self.model.train()
+        # self.model_target.train()
+        # self.optimizer.load_state_dict(checkpoint['optimizer'])
 
     def train_step(self, state, action, reward, next_state, done):
         state = np.array(state)
@@ -156,3 +158,14 @@ class QTrainer:
 
         self.optimizer.step()
 
+    def save(self, file_name='qlearning model.pth'):
+        model_folder_path = './model'
+        if not os.path.exists(model_folder_path):
+            os.makedirs(model_folder_path)
+
+        file_name = os.path.join(model_folder_path, file_name)
+        torch.save({
+            'model': self.model.state_dict(),
+            'optimizer': self.optimizer.state_dict(),
+            'criterion': self.criterion.state_dict(),
+            }, file_name)
