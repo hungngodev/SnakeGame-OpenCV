@@ -30,7 +30,7 @@ class QNet(nn.Module):
 
 class TargetNetworkQTrainer:
     def __init__(self, model, model_target, lr, gamma, sfu, device):
-        checkpoint  = torch.load('./model/training target model.pth')
+        checkpoint  = torch.load('./model/training target modelm 3.pth')
         self.lr = lr
         self.device = device
         self.gamma = gamma
@@ -81,9 +81,9 @@ class TargetNetworkQTrainer:
         
         #update weights of Q network 
         self.optimizer.step()
-        # with torch.no_grad():
-        #     for target_param, source_param in zip(self.model_target.parameters(), self.model.parameters()):
-        #         target_param.copy_(self.tau * source_param.data + (1.0 - self.tau) * target_param.data)
+        with torch.no_grad():
+            for target_param, source_param in zip(self.model_target.parameters(), self.model.parameters()):
+                target_param.copy_(self.tau * source_param.data + (1.0 - self.tau) * target_param.data)
     
     def update_target(self):
         print('update target')
