@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from IPython import display
+import numpy as np
 
 # plt.ion()
 
@@ -18,3 +19,7 @@ def plot(scores, mean_scores):
     plt.show()
      
 
+if __name__ == '__main__':
+    plot_scores = np.load('./plotlib/plot_scores_TargetNetwork.npy')
+    mean_scores = np.load('./plotlib/plot_mean_scores_TargetNetwork.npy')
+    plot(plot_scores, mean_scores)
