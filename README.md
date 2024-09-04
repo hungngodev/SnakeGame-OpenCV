@@ -29,7 +29,7 @@ The goal is to investigate how different strategies perform in solving the Snake
 
 Detailed presentation: https://www.canva.com/design/DAFiMtnlggc/KR4pgUoE82h7TEn9ZqPKnA/edit?utm_content=DAFiMtnlggc&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
 
-## Reinforcement Learning Approach
+## Reinforcement Learning Approach (branch AI)
 
 - **Model Architecture**: 
   - A fully connected neural network with 4 layers.
